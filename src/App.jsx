@@ -36,7 +36,7 @@ function Login({ onLogin }) {
     setError("");
     try {
       const { data } = await api.post("/auth/login", { email, password });
-      if (!data?.token) throw new Error("No token returned");
+      if (!data?.token) throw new Error("Login failed");
       setStoredToken(data.token);
       onLogin(data.user || null);
     } catch (err) {
