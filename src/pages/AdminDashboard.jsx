@@ -86,7 +86,7 @@ const RESOURCE_CONFIG = {
       { key: "position", label: "Position", type: "text", required: true },
       { key: "department", label: "Department", type: "text", required: true },
       { key: "bio", label: "Bio", type: "textarea" },
-      { key: "image_path", label: "Asset path", type: "text" },
+      { key: "image_path", label: "Image", type: "file" },
       { key: "email", label: "Email", type: "email" },
       { key: "phone", label: "Phone", type: "text" },
     ],
@@ -582,6 +582,7 @@ export default function AdminDashboard() {
   const [profileForm, setProfileForm] = useState({ username: "", email: "", full_name: "", phone: "", bio: "" });
   const [pwd, setPwd] = useState({ new_password: "" });
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
 
   const stats = useMemo(
@@ -617,49 +618,49 @@ export default function AdminDashboard() {
   const loadEverything = async () => {
     setLoading(true);
     setStatus("");
+    
+    // Load critical data first (overview stats)
     try {
-      const [
-        eventsRes,
-        announcementsRes,
-        contentRes,
-        studentsRes,
-        staffRes,
-        departmentsRes,
-        contactInfoRes,
-        usersRes,
-        messagesRes,
-        timetablesRes,
-        schoolWorkersRes,
-        meRes,
-      ] = await Promise.all([
-        api.get("/events"),
-        api.get("/announcements"),
-        api.get("/content"),
-        api.get("/students"),
-        api.get("/staff"),
-        api.get("/departments"),
-        api.get("/contact"),
-        api.get("/users"),
-        api.get("/contact/messages"),
-        api.get("/timetables"),
-        api.get("/school-workers"),
-        api.get("/auth/me"),
+      const criticalData = await Promise.all([
+        api.get("/events").catch(() => ({ data: [] })),
+        api.get("/announcements").catch(() => ({ data: [] })),
+        api.get("/staff").catch(() => ({ data: [] })),
+        api.get("/students").catch(() => ({ data: [] })),
+        api.get("/auth/me").catch(() => ({ data: user })),
       ]);
 
-      setRows({
-        events: eventsRes.data || [],
-        announcements: announcementsRes.data || [],
-        content: contentRes.data || [],
-        students: studentsRes.data || [],
-        staff: staffRes.data || [],
-        departments: departmentsRes.data || [],
-        contactInfo: contactInfoRes.data || [],
-        users: usersRes.data || [],
-        messages: messagesRes.data || [],
-        timetables: timetablesRes.data || [],
-        schoolWorkers: schoolWorkersRes.data || [],
-      });
-      syncProfileForm(meRes.data || user);
+      setRows(prev => ({
+        ...prev,
+        events: criticalData[0].data || [],
+        announcements: criticalData[1].data || [],
+        staff: criticalData[2].data || [],
+        students: criticalData[3].data || [],
+      }));
+      syncProfileForm(criticalData[4].data || user);
+      
+      setLoading(false); // Show UI with initial data
+      
+      // Load remaining data in background
+      const remainingData = await Promise.all([
+        api.get("/content").catch(() => ({ data: [] })),
+        api.get("/departments").catch(() => ({ data: [] })),
+        api.get("/contact").catch(() => ({ data: [] })),
+        api.get("/users").catch(() => ({ data: [] })),
+        api.get("/contact/messages").catch(() => ({ data: [] })),
+        api.get("/timetables").catch(() => ({ data: [] })),
+        api.get("/school-workers").catch(() => ({ data: [] })),
+      ]);
+
+      setRows(prev => ({
+        ...prev,
+        content: remainingData[0].data || [],
+        departments: remainingData[1].data || [],
+        contactInfo: remainingData[2].data || [],
+        users: remainingData[3].data || [],
+        messages: remainingData[4].data || [],
+        timetables: remainingData[5].data || [],
+        schoolWorkers: remainingData[6].data || [],
+      }));
     } catch (error) {
       setStatus(getApiError(error, "Failed to load dashboard data"));
     } finally {
@@ -706,25 +707,37 @@ export default function AdminDashboard() {
   };
 
   const uploadFile = async (file) => {
+    setUploading(true);
     if (!file) return null;
     const formData = new FormData();
     formData.append("file", file);
-    try {
+    try {ata, {
+        timeout: 30000, // 30 second timeout for uploads
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.totl);
+          if (percenCompleted < 100) {
+            setSttus(`Uploading: ${percentCompleted}%`);
+          }
+        },
+      }
       const { data } = await api.post("/uploads", formData);
       return data?.file;
     } catch (error) {
-      console.error("[uploadFile error]", error?.response?.status, error?.response?.data, error?.message);
+      console.err;
+    } finally {
+      setUploading(false)or("[uploadFile error]", error?.response?.status, error?.response?.data, error?.message);
       throw error;
     }
   };
 
   const uploadAndAssign = async (section, file, fieldKey) => {
     if (!file || !fieldKey) return;
-    try {
+    trsetStatus("Uploading file...");
+      y {
       const uploaded = await uploadFile(file);
       if (uploaded?.path) {
-        setSectionField(section, fieldKey, uploaded.path);
-        setStatus(`Uploaded and inserted path: ${uploaded.path}`);
+        setSectionField(secloaded.path);
+        // Don'taretuad all dats - just up(atp ade form inserted path: ${uploaded.path}`);
         await loadEverything();
       }
     } catch (error) {
@@ -744,21 +757,28 @@ export default function AdminDashboard() {
     let payload = createPayload(section, form, isEditing);
     
     try {
-      // If there's a file field and a file is selected, upload it first
+      //setStatus("Uploading file...");
+         If there's a file field and a file is selected, upload it first
       if (fileField && form[fileField.key] instanceof File) {
         const uploaded = await uploadFile(form[fileField.key]);
         if (uploaded?.path) {
           payload[fileField.key] = uploaded.path;
         }
-      }
+      setStatus("Sav}ng...");
+      i
       
       if (isEditing) {
         await api.put(`${cfg.endpoint}/${editing[section]}`, payload);
         setStatus(`${cfg.title} updated`);
       } else {
         await api.post(cfg.endpoint, payload);
-        setStatus(`${cfg.title} created`);
-      }
+      
+      // Only relo d the affected section, not all data
+      const sectionData = a setSapi.get(cfg.endpaint).cttch(() => ({ uata: [] }));
+      setRows(prev => ({ ...pre(, [section]: s`ccgo.Data.data || [] })tl
+      e} created`);
+      }(section);
+      setEditing(prev => { ...prev, [n]: ull })
       await loadEverything();
       resetSectionForm(section);
     } catch (error) {
