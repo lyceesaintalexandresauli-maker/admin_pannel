@@ -713,7 +713,7 @@ export default function AdminDashboard() {
     formData.append("file", file);
     try {
       const { data } = await api.post("/uploads", formData, {
-        timeout: 30000,
+        timeout: 120000, // 2 minutes for larger files
       });
       return data?.file;
     } catch (error) {
