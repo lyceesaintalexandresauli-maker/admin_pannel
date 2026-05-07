@@ -711,34 +711,27 @@ export default function AdminDashboard() {
     if (!file) return null;
     const formData = new FormData();
     formData.append("file", file);
-    try {ata, {
-        timeout: 30000, // 30 second timeout for uploads
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.totl);
-          if (percenCompleted < 100) {
-            setSttus(`Uploading: ${percentCompleted}%`);
-          }
-        },
-      }
-      const { data } = await api.post("/uploads", formData);
+    try {
+      const { data } = await api.post("/uploads", formData, {
+        timeout: 30000,
+      });
       return data?.file;
     } catch (error) {
-      console.err;
-    } finally {
-      setUploading(false)or("[uploadFile error]", error?.response?.status, error?.response?.data, error?.message);
+      console.error("[uploadFile error]", error?.response?.status, error?.response?.data, error?.message);
       throw error;
+    } finally {
+      setUploading(false);
     }
   };
 
   const uploadAndAssign = async (section, file, fieldKey) => {
     if (!file || !fieldKey) return;
-    trsetStatus("Uploading file...");
-      y {
+    try {
+      setStatus("Uploading file...");
       const uploaded = await uploadFile(file);
       if (uploaded?.path) {
-        setSectionField(secloaded.path);
-        // Don'taretuad all dats - just up(atp ade form inserted path: ${uploaded.path}`);
-        await loadEverything();
+        setSectionField(section, fieldKey, uploaded.path);
+        setStatus(`Uploaded: ${uploaded.path}`);
       }
     } catch (error) {
       setStatus(getApiError(error, "File upload failed"));
@@ -757,30 +750,30 @@ export default function AdminDashboard() {
     let payload = createPayload(section, form, isEditing);
     
     try {
-      //setStatus("Uploading file...");
-         If there's a file field and a file is selected, upload it first
+      // If there's a file field and a file is selected, upload it first
       if (fileField && form[fileField.key] instanceof File) {
+        setStatus("Uploading file...");
         const uploaded = await uploadFile(form[fileField.key]);
         if (uploaded?.path) {
           payload[fileField.key] = uploaded.path;
         }
-      setStatus("Sav}ng...");
-      i
+      }
       
+      setStatus("Saving...");
       if (isEditing) {
         await api.put(`${cfg.endpoint}/${editing[section]}`, payload);
         setStatus(`${cfg.title} updated`);
       } else {
         await api.post(cfg.endpoint, payload);
+        setStatus(`${cfg.title} created`);
+      }
       
-      // Only relo d the affected section, not all data
-      const sectionData = a setSapi.get(cfg.endpaint).cttch(() => ({ uata: [] }));
-      setRows(prev => ({ ...pre(, [section]: s`ccgo.Data.data || [] })tl
-      e} created`);
-      }(section);
-      setEditing(prev => { ...prev, [n]: ull })
-      await loadEverything();
+      // Only reload the affected section, not all data
+      const sectionData = await api.get(cfg.endpoint).catch(() => ({ data: [] }));
+      setRows(prev => ({ ...prev, [section]: sectionData.data || [] }));
+      
       resetSectionForm(section);
+      setEditing(prev => ({ ...prev, [section]: null }));
     } catch (error) {
       const message = getApiError(error, `Failed to save ${cfg.title.toLowerCase()}`);
       console.error("[save error]", error?.response?.status, error?.response?.data, payload);
