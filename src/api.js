@@ -16,6 +16,30 @@ export const getStoredToken = () => localStorage.getItem(tokenStorageKey) || "";
 export const setStoredToken = (value) => localStorage.setItem(tokenStorageKey, value);
 export const clearStoredToken = () => localStorage.removeItem(tokenStorageKey);
 
+// Utility function to handle image URLs (Supabase Storage or local)
+export const mediaUrl = (inputPath) => {
+  if (!inputPath) return "";
+
+  // If it's already a full URL, return it as-is
+  if (/^https?:\/\//i.test(inputPath)) {
+    return inputPath;
+  }
+
+  // For relative paths, prepend API_BASE_URL
+  const base = API_BASE_URL || "";
+  
+  // Handle /uploads paths - these are served by backend
+  if (inputPath.startsWith("/uploads")) {
+    return `${base}${inputPath}`;
+  }
+  
+  // Handle /assets paths
+  if (inputPath.startsWith("/assets")) return `${base}${inputPath}`;
+  if (inputPath.startsWith("assets/")) return `${base}/${inputPath}`;
+
+  return inputPath;
+};
+
 api.interceptors.request.use((config) => {
   const token = getStoredToken();
   if (token) {
