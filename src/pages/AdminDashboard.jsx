@@ -686,14 +686,18 @@ export default function AdminDashboard() {
     for (const field of fields) {
       if (!isEditing && field.editOnly) continue;
       if (isEditing && field.createOnly) continue;
-      if (field.hiddenInForm) continue;
+      // Note: don't skip hiddenInForm fields - they may have values set programmatically
       let value = rawForm[field.key];
       if (field.type === "checkbox") {
         payload[field.key] = !!value;
       } else if (field.type === "file") {
-        // Skip file fields - they are handled in submitSection
+        // Include file fields if they contain a string path (from upload), skip if File instance
+        if (typeof value === "string" && value) {
+          payload[field.key] = value.trim();
+        }
         continue;
       } else {
+        if (field.hiddenInForm && !value) continue; // Skip empty hidden fields
         if (typeof value === "string") value = value.trim();
         payload[field.key] = value === "" ? null : value;
       }
