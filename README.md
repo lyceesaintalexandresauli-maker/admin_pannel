@@ -1,34 +1,140 @@
-# Muhura Admin Central
+# Admin Panel - Lycee Saint Alexandre Sauli de Muhura
 
-Standalone admin application (React + Vite + Tailwind) for centralized CRUD operations against the existing backend API.
+A React-based admin panel for managing school operations, integrated with Supabase for authentication and data management.
 
-## Why API instead of direct DB
+## Tech Stack
 
-A browser app should not connect directly to PostgreSQL. This admin talks to the backend API, and the backend safely updates the database.
+- **Frontend**: React 19, Vite
+- **Routing**: React Router v7
+- **Database/Auth**: Supabase
+- **HTTP Client**: Axios
+- **Styling**: Custom CSS
 
-## Setup
+## Environment Variables
 
-1. Copy env file:
+Create a `.env` file in the root directory with the following variables:
 
-```bash
-cp .env.example .env
+```env
+# Supabase Configuration
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PROJECT_REF=your-project-ref
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# Backend API Configuration
+VITE_API_BASE_URL=https://your-backend-api.onrender.com
+VITE_ASSETS_BASE_URL=https://your-backend-api.onrender.com
+
+# Cadeau AI Service
+VITE_CADEAU_URL=https://your-cadeau-service.com
+
+# Flask Timetable Services
+VITE_FLASK_TIMETABLE_ADMIN_URL=https://your-timetable-admin.com
+VITE_FLASK_TIMETABLE_CLIENT_URL=https://your-timetable-client.com
 ```
 
-2. Install dependencies:
+## Local Development
 
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Start dev server:
+2. Create a `.env` file with your environment variables (see `.env.example`)
 
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-## Required backend
+The app will be available at `http://localhost:5175`
 
-- Backend must be running and reachable at `VITE_API_BASE_URL`.
-- Login uses `/api/auth/login`.
-- Session check uses `/api/auth/me`.
-- CRUD uses selected resource endpoints.
+## Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
+
+## Deployment to Render
+
+### Prerequisites
+
+1. Push your code to a GitHub/GitLab repository
+2. Have a Render account (https://render.com)
+3. Have your Supabase project set up
+
+### Steps
+
+1. **Create a new Web Service on Render**
+   - Go to Render Dashboard
+   - Click "New +"
+   - Select "Web Service"
+   - Connect your repository
+
+2. **Configure the Service**
+   - **Name**: admin-panel-frontend (or your preferred name)
+   - **Environment**: Static Site
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+
+3. **Add Environment Variables**
+   In Render, add the following environment variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_PROJECT_REF`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_API_BASE_URL`
+   - `VITE_ASSETS_BASE_URL`
+   - `VITE_CADEAU_URL`
+   - `VITE_FLASK_TIMETABLE_ADMIN_URL`
+   - `VITE_FLASK_TIMETABLE_CLIENT_URL`
+
+4. **Deploy**
+   - Click "Create Web Service"
+   - Render will automatically build and deploy your app
+
+### Alternative: Using render.yaml
+
+The repository includes a `render.yaml` file. If you connect this repository to Render, it will automatically detect and use this configuration.
+
+## Supabase Setup
+
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Go to Project Settings > API
+3. Copy the following:
+   - Project URL → `VITE_SUPABASE_URL`
+   - Project Reference → `VITE_SUPABASE_PROJECT_REF`
+   - anon/public key → `VITE_SUPABASE_ANON_KEY`
+
+4. Configure your database schema and authentication settings in Supabase
+
+## Project Structure
+
+```
+admin-panel-copy/
+├── src/
+│   ├── api/           # API client and services
+│   ├── components/    # Reusable components
+│   ├── context/       # React context providers
+│   ├── pages/         # Page components
+│   ├── styles/        # Global styles
+│   ├── App.jsx        # Main app component
+│   ├── main.jsx       # Entry point
+│   └── supabase.js    # Supabase client configuration
+├── public/            # Static assets
+├── .env.example       # Environment variables template
+├── .env              # Your environment variables (not in git)
+├── package.json      # Dependencies and scripts
+├── render.yaml       # Render deployment configuration
+└── vite.config.js    # Vite configuration
+```
+
+## Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+
+## Support
+
+For issues or questions, please contact the development team.
