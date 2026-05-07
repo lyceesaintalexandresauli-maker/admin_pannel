@@ -9,7 +9,7 @@ const SIDEBAR_ITEMS = [
   { id: "events", label: "Events API", icon: "bi-calendar-event" },
   { id: "announcements", label: "Announcements API", icon: "bi-megaphone" },
   { id: "content", label: "Content API", icon: "bi-file-earmark-text" },
-  { id: "students", label: "Students API", icon: "bi-mortarboard" },
+  { id: "gallery", label: "Gallery", icon: "bi-image" },
   { id: "staff", label: "Staff API", icon: "bi-people" },
   { id: "departments", label: "Departments API", icon: "bi-diagram-3" },
   { id: "timetables", label: "Time Tables API", icon: "bi-calendar3" },
@@ -160,6 +160,19 @@ const RESOURCE_CONFIG = {
       { key: "is_active", label: "Active", type: "checkbox", required: false },
     ],
     columns: ["id", "name", "location", "phone_number", "national_id", "job_type", "age", "salary", "is_active"],
+  },
+  gallery: {
+    title: "Gallery",
+    endpoint: "/gallery",
+    idKey: "id",
+    fields: [
+      { key: "title", label: "Title (optional)", type: "text" },
+      { key: "media_path", label: "Media Path", type: "text", required: true, hiddenInForm: true },
+      { key: "media_type", label: "Media Type", type: "text", required: true, hiddenInForm: true },
+      { key: "sort_order", label: "Sort Order", type: "number" },
+      { key: "is_active", label: "Active", type: "checkbox" },
+    ],
+    columns: ["id", "title", "media_type", "sort_order", "is_active"],
   },
 };
 
@@ -648,6 +661,7 @@ export default function AdminDashboard() {
         api.get("/users").catch(() => ({ data: [] })),
         api.get("/contact/messages").catch(() => ({ data: [] })),
         api.get("/timetables").catch(() => ({ data: [] })),
+        api.get("/gallery").catch(() => ({ data: [] })),
         api.get("/school-workers").catch(() => ({ data: [] })),
       ]);
 
@@ -659,7 +673,8 @@ export default function AdminDashboard() {
         users: remainingData[3].data || [],
         messages: remainingData[4].data || [],
         timetables: remainingData[5].data || [],
-        schoolWorkers: remainingData[6].data || [],
+        gallery: remainingData[6].data || [],
+        schoolWorkers: remainingData[7].data || [],
       }));
     } catch (error) {
       setStatus(getApiError(error, "Failed to load dashboard data"));

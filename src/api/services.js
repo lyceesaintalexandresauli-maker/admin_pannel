@@ -100,3 +100,12 @@ export const timetablesAPI = {
   delete: (id) => api.delete(`/timetables/${id}`),
   syncCadeau: () => api.post('/timetables/sync-cadeau'),
 };
+
+export const galleryAPI = {
+  getAll: () => api.get('/gallery'),
+  getByType: (mediaType) => api.get(`/gallery/type/${mediaType}`),
+  getById: (id) => api.get(`/gallery/${id}`),
+  create: (data) => api.post('/gallery', data),
+  update: (id, data) => api.put(`/gallery/${id}`, data),
+  delete: (id) => api.delete(`/gallery/${id}`),
+};
