@@ -74,7 +74,7 @@ api.interceptors.response.use(
 );
 
 export const getApiError = (error, fallback = "Request failed") =>
-  error?.response?.data?.error || fallback;
+  error?.response?.data?.error || error?.message || fallback;
 
 export const mediaUrl = (inputPath) => {
   if (!inputPath) return "";

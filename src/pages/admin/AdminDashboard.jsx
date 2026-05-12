@@ -516,22 +516,23 @@ function ProfileSecurityPanel({
 }
 
 function TimetablePanel() {
-  const { user, token } = useAuth();
-  const flaskTimetableUrl = "http://127.0.0.1:5000";
-  
+  const { token } = useAuth();
+  const configuredTimetableUrl = String(import.meta.env.VITE_TIMETABLE_APP_URL || "").replace(/\/+$/, "");
+  const timetableSrc = `${configuredTimetableUrl}/?token=${encodeURIComponent(token || "")}&_t=${Date.now()}`;
 
   return (
     <div style={{ width: '100%', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
       <iframe
-        src={`${flaskTimetableUrl}/?token=${token}&_t=${Date.now()}`}
+        src={timetableSrc}
         style={{
           width: '100%',
           height: '100%',
           border: 'none',
           display: 'block'
         }}
-        title="Flask Timetable Management with Chatbot"
+        title="Timetable Management"
         allow="clipboard-read; clipboard-write"
+        referrerPolicy="strict-origin-when-cross-origin"
       />
     </div>
   );
@@ -1003,4 +1004,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

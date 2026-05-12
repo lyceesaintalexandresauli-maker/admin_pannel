@@ -6,14 +6,17 @@ import "../styles/admin.css";
 
 const SIDEBAR_ITEMS = [
   { id: "overview", label: "Dashboard", icon: "bi-grid-1x2" },
+  { id: "uploads", label: "Uploads API", icon: "bi-cloud-arrow-up" },
   { id: "events", label: "Events API", icon: "bi-calendar-event" },
   { id: "announcements", label: "Announcements API", icon: "bi-megaphone" },
   { id: "content", label: "Content API", icon: "bi-file-earmark-text" },
-  { id: "gallery", label: "Gallery", icon: "bi-image" },
+  { id: "students", label: "Students API", icon: "bi-mortarboard" },
   { id: "staff", label: "Staff API", icon: "bi-people" },
   { id: "departments", label: "Departments API", icon: "bi-diagram-3" },
   { id: "timetables", label: "Time Tables API", icon: "bi-calendar3" },
   { id: "schoolWorkers", label: "School Workers API", icon: "bi-person-badge" },
+  { id: "navigation", label: "Navigation API", icon: "bi-menu-button-wide" },
+  { id: "siteSettings", label: "Site Settings API", icon: "bi-sliders" },
   { id: "contactInfo", label: "Contact Info API", icon: "bi-telephone" },
   { id: "messages", label: "Client Messages API", icon: "bi-inbox" },
   { id: "users", label: "Users API", icon: "bi-shield-lock" },
@@ -140,7 +143,7 @@ const RESOURCE_CONFIG = {
       { key: "trade_level", label: "Trade Level", type: "text", required: true },
       { key: "academic_year", label: "Academic Year", type: "text", required: true },
       { key: "term", label: "Term", type: "text", required: true },
-      { key: "schedule_data", label: "Schedule Data (JSON)", type: "textarea", required: true },
+      { key: "schedule_data", label: "Schedule Data (JSON)", type: "textarea", required: true, json: true },
       { key: "status", label: "Status", type: "select", options: ["draft", "published", "archived"], required: true },
     ],
     columns: ["id", "class_name", "department", "trade_level", "academic_year", "term", "status"],
@@ -160,6 +163,19 @@ const RESOURCE_CONFIG = {
       { key: "is_active", label: "Active", type: "checkbox", required: false },
     ],
     columns: ["id", "name", "location", "phone_number", "national_id", "job_type", "age", "salary", "is_active"],
+  },
+  navigation: {
+    title: "Navigation",
+    endpoint: "/navigation",
+    idKey: "id",
+    fields: [
+      { key: "parent_id", label: "Parent ID", type: "number" },
+      { key: "label", label: "Label", type: "text", required: true },
+      { key: "href", label: "Href", type: "text" },
+      { key: "sort_order", label: "Sort Order", type: "number" },
+      { key: "is_active", label: "Active", type: "checkbox" },
+    ],
+    columns: ["id", "parent_id", "label", "href", "sort_order", "is_active"],
   },
   gallery: {
     title: "Gallery",
@@ -188,8 +204,26 @@ const emptyFormFor = (section) => {
 const displayValue = (value) => {
   if (value === null || value === undefined || value === "") return "-";
   if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "object") {
+    if (value === null) return "-";
+    if (value.title) return String(value.title).slice(0, 90);
+    if (value.name) return String(value.name).slice(0, 90);
+    try {
+      return JSON.stringify(value).slice(0, 90);
+    } catch (err) {
+      return String(value).slice(0, 90);
+    }
+  }
   return String(value).slice(0, 90);
 };
+
+const mapSiteSettingsRows = (settings = {}) =>
+  Object.entries(settings)
+    .map(([key, value]) => ({
+      key,
+      value: value ?? "",
+    }))
+    .sort((a, b) => a.key.localeCompare(b.key));
 
 const getPickerMeta = (fieldKey = "") => {
   const key = String(fieldKey).toLowerCase();
@@ -218,12 +252,17 @@ function ResourcePanel({
 }) {
   const cfg = RESOURCE_CONFIG[section];
   const createMode = editingId === null;
-  const fields = cfg.fields.filter((f) => {
-    if (createMode && f.editOnly) return false;
-    if (!createMode && f.createOnly) return false;
-    if (f.hiddenInForm) return false;
-    return true;
-  });
+  const fields = cfg.fields
+    .filter((f) => {
+      if (createMode && f.editOnly) return false;
+      if (!createMode && f.createOnly) return false;
+      if (f.hiddenInForm) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const rank = (field) => (field.type === "file" ? 0 : 1);
+      return rank(a) - rank(b);
+    });
 
   const pathFields = cfg.fields.filter((f) => f.key.endsWith("_path"));
   const [targetField, setTargetField] = useState(pathFields[0]?.key || "");
@@ -281,6 +320,19 @@ function ResourcePanel({
                 checked={!!form[field.key]}
                 onChange={(e) => onChange(field.key, e.target.checked)}
               />
+            ) : field.type === "select" ? (
+              <select
+                value={form[field.key] ?? ""}
+                required={!!field.required}
+                onChange={(e) => onChange(field.key, e.target.value)}
+              >
+                <option value="">Select option</option>
+                {(field.options || []).map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             ) : field.type === "file" ? (
               <input
                 type="file"
@@ -328,10 +380,10 @@ function ResourcePanel({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={String(row[cfg.idKey])}>
+            {rows.map((row, rowIndex) => (
+              <tr key={String((row && row[cfg.idKey]) || `${section}-${rowIndex}`)}>
                 {cfg.columns.map((col) => (
-                  <td key={col}>{displayValue(row[col])}</td>
+                  <td key={col}>{displayValue(row ? row[col] : null)}</td>
                 ))}
                 <td>
                   <div className="adm-actions">
@@ -473,6 +525,180 @@ function MessagesPanel({ messages, onUpdateStatus, onDelete, status }) {
   );
 }
 
+function UploadsPanel({ uploads, status, uploading, onUpload, onDelete, onCopyPath }) {
+  const [file, setFile] = useState(null);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!file) return;
+    await onUpload(file);
+    setFile(null);
+    event.currentTarget.reset();
+  };
+
+  return (
+    <div className="adm-panel">
+      <div className="adm-panel-head">
+        <h3>Uploads Library</h3>
+        <p>Connected to `/uploads` for file upload, listing, and deletion.</p>
+      </div>
+
+      <form className="adm-form" onSubmit={handleSubmit}>
+        <label className="adm-field adm-field-wide">
+          <span>Upload image, video, or document</span>
+          <input
+            type="file"
+            onChange={(event) => setFile(event.target.files?.[0] || null)}
+            required
+          />
+        </label>
+        <div className="adm-form-actions">
+          <button type="submit" className="adm-btn" disabled={uploading || !file}>
+            {uploading ? "Uploading..." : "Upload File"}
+          </button>
+        </div>
+      </form>
+
+      {status && <p className="adm-status">{status}</p>}
+
+      <div className="adm-table-wrap">
+        <table className="adm-table">
+          <thead>
+            <tr>
+              <th>id</th>
+              <th>original_name</th>
+              <th>type</th>
+              <th>size</th>
+              <th>path</th>
+              <th>created_at</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {uploads.map((row) => (
+              <tr key={row.id}>
+                <td>{row.id}</td>
+                <td>{displayValue(row.original_name)}</td>
+                <td>{displayValue(row.type)}</td>
+                <td>{row.size ? `${Math.round(row.size / 1024)} KB` : "-"}</td>
+                <td>{displayValue(row.path)}</td>
+                <td>{displayValue(row.created_at)}</td>
+                <td>
+                  <div className="adm-actions">
+                    <button type="button" className="adm-btn adm-btn-light" onClick={() => onCopyPath(row.path)}>
+                      Copy Path
+                    </button>
+                    <button type="button" className="adm-btn adm-btn-danger" onClick={() => onDelete(row.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {uploads.length === 0 && (
+              <tr>
+                <td colSpan={7} className="adm-empty">
+                  No uploaded files yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function SiteSettingsPanel({
+  settings,
+  form,
+  editingKey,
+  onChange,
+  onSubmit,
+  onEdit,
+  onCancel,
+  status,
+}) {
+  const isEditing = Boolean(editingKey);
+
+  return (
+    <div className="adm-panel">
+      <div className="adm-panel-head">
+        <h3>Site Settings</h3>
+        <p>Connected to `/site/settings` for frontend configuration values.</p>
+      </div>
+
+      <form className="adm-form" onSubmit={onSubmit}>
+        <label className="adm-field">
+          <span>Setting key</span>
+          <input
+            value={form.key}
+            onChange={(event) => onChange("key", event.target.value)}
+            placeholder="e.g. school_name"
+            required
+            disabled={isEditing}
+          />
+        </label>
+        <label className="adm-field adm-field-wide">
+          <span>Setting value</span>
+          <textarea
+            value={form.value}
+            onChange={(event) => onChange("value", event.target.value)}
+            placeholder="Enter the value"
+            required
+          />
+        </label>
+        <div className="adm-form-actions">
+          <button type="submit" className="adm-btn">
+            {isEditing ? "Update Setting" : "Save Setting"}
+          </button>
+          {isEditing && (
+            <button type="button" className="adm-btn adm-btn-light" onClick={onCancel}>
+              Cancel Edit
+            </button>
+          )}
+        </div>
+      </form>
+
+      {status && <p className="adm-status">{status}</p>}
+
+      <div className="adm-table-wrap">
+        <table className="adm-table">
+          <thead>
+            <tr>
+              <th>key</th>
+              <th>value</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {settings.map((row) => (
+              <tr key={row.key}>
+                <td>{row.key}</td>
+                <td>{displayValue(row.value)}</td>
+                <td>
+                  <div className="adm-actions">
+                    <button type="button" className="adm-btn adm-btn-light" onClick={() => onEdit(row)}>
+                      Edit
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {settings.length === 0 && (
+              <tr>
+                <td colSpan={3} className="adm-empty">
+                  No site settings found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function ProfileSecurityPanel({
   form,
   setForm,
@@ -530,22 +756,24 @@ function ProfileSecurityPanel({
 }
 
 function TimetablePanel() {
-  const { user, token } = useAuth();
-  const flaskTimetableUrl = "http://127.0.0.1:5000";
+  const { token } = useAuth();
+  const configuredTimetableUrl = String(import.meta.env.VITE_TIMETABLE_APP_URL || "").replace(/\/+$/, "");
+  const timetableSrc = `${configuredTimetableUrl}/?token=${encodeURIComponent(token || "")}&_t=${Date.now()}`;
 
 
   return (
-    <div style={{ width: '100%', height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
+    <div className="adm-panel" style={{ width: "100%", height: "calc(100vh - 64px)", overflow: "hidden", padding: 0 }}>
       <iframe
-        src={`${flaskTimetableUrl}/?token=${token}&_t=${Date.now()}`}
+        src={timetableSrc}
         style={{
-          width: '100%',
-          height: '100%',
-          border: 'none',
-          display: 'block'
+          width: "100%",
+          height: "100%",
+          border: "none",
+          display: "block",
         }}
-        title="Flask Timetable Management with Chatbot"
+        title="Timetable Management"
         allow="clipboard-read; clipboard-write"
+        referrerPolicy="strict-origin-when-cross-origin"
       />
     </div>
   );
@@ -556,12 +784,14 @@ export default function AdminDashboard() {
   const { user, logout, refreshMe } = useAuth();
   const [active, setActive] = useState("overview");
   const [rows, setRows] = useState({
+    uploads: [],
     events: [],
     announcements: [],
     content: [],
     students: [],
     staff: [],
     departments: [],
+    navigation: [],
     contactInfo: [],
     users: [],
     messages: [],
@@ -575,6 +805,7 @@ export default function AdminDashboard() {
     students: emptyFormFor("students"),
     staff: emptyFormFor("staff"),
     departments: emptyFormFor("departments"),
+    navigation: emptyFormFor("navigation"),
     contactInfo: emptyFormFor("contactInfo"),
     users: emptyFormFor("users"),
     timetables: emptyFormFor("timetables"),
@@ -587,11 +818,15 @@ export default function AdminDashboard() {
     students: null,
     staff: null,
     departments: null,
+    navigation: null,
     contactInfo: null,
     users: null,
     timetables: null,
     schoolWorkers: null,
   });
+  const [siteSettings, setSiteSettings] = useState([]);
+  const [siteSettingForm, setSiteSettingForm] = useState({ key: "", value: "" });
+  const [editingSiteSetting, setEditingSiteSetting] = useState("");
   const [profileForm, setProfileForm] = useState({ username: "", email: "", full_name: "", phone: "", bio: "" });
   const [pwd, setPwd] = useState({ new_password: "" });
   const [loading, setLoading] = useState(true);
@@ -600,6 +835,7 @@ export default function AdminDashboard() {
 
   const stats = useMemo(
     () => [
+      { label: "Uploads", value: rows.uploads.length },
       { label: "Events", value: rows.events.length },
       { label: "Announcements", value: rows.announcements.length },
       { label: "Content", value: rows.content.length },
@@ -607,11 +843,13 @@ export default function AdminDashboard() {
       { label: "School Workers", value: rows.schoolWorkers.length },
       { label: "Staff", value: rows.staff.length },
       { label: "Departments", value: rows.departments.length },
+      { label: "Navigation", value: rows.navigation.length },
+      { label: "Site Settings", value: siteSettings.length },
       { label: "Timetables", value: rows.timetables.length },
       { label: "Messages", value: rows.messages.length },
       { label: "Users", value: rows.users.length },
     ],
-    [rows]
+    [rows, siteSettings]
   );
 
   const syncProfileForm = (u) => {
@@ -635,6 +873,7 @@ export default function AdminDashboard() {
     // Load critical data first (overview stats)
     try {
       const criticalData = await Promise.all([
+        api.get("/uploads").catch(() => ({ data: [] })),
         api.get("/events").catch(() => ({ data: [] })),
         api.get("/announcements").catch(() => ({ data: [] })),
         api.get("/staff").catch(() => ({ data: [] })),
@@ -644,12 +883,13 @@ export default function AdminDashboard() {
 
       setRows(prev => ({
         ...prev,
-        events: criticalData[0].data || [],
-        announcements: criticalData[1].data || [],
-        staff: criticalData[2].data || [],
-        students: criticalData[3].data || [],
+        uploads: criticalData[0].data || [],
+        events: criticalData[1].data || [],
+        announcements: criticalData[2].data || [],
+        staff: criticalData[3].data || [],
+        students: criticalData[4].data || [],
       }));
-      syncProfileForm(criticalData[4].data || user);
+      syncProfileForm(criticalData[5].data || user);
       
       setLoading(false); // Show UI with initial data
       
@@ -657,11 +897,12 @@ export default function AdminDashboard() {
       const remainingData = await Promise.all([
         api.get("/content").catch(() => ({ data: [] })),
         api.get("/departments").catch(() => ({ data: [] })),
+        api.get("/navigation").catch(() => ({ data: [] })),
+        api.get("/site/settings").catch(() => ({ data: {} })),
         api.get("/contact").catch(() => ({ data: [] })),
         api.get("/users").catch(() => ({ data: [] })),
         api.get("/contact/messages").catch(() => ({ data: [] })),
         api.get("/timetables").catch(() => ({ data: [] })),
-        api.get("/gallery").catch(() => ({ data: [] })),
         api.get("/school-workers").catch(() => ({ data: [] })),
       ]);
 
@@ -669,13 +910,14 @@ export default function AdminDashboard() {
         ...prev,
         content: remainingData[0].data || [],
         departments: remainingData[1].data || [],
-        contactInfo: remainingData[2].data || [],
-        users: remainingData[3].data || [],
-        messages: remainingData[4].data || [],
-        timetables: remainingData[5].data || [],
-        gallery: remainingData[6].data || [],
-        schoolWorkers: remainingData[7].data || [],
+        navigation: remainingData[2].data || [],
+        contactInfo: remainingData[4].data || [],
+        users: remainingData[5].data || [],
+        messages: remainingData[6].data || [],
+        timetables: remainingData[7].data || [],
+        schoolWorkers: remainingData[8].data || [],
       }));
+      setSiteSettings(mapSiteSettingsRows(remainingData[3].data || {}));
     } catch (error) {
       setStatus(getApiError(error, "Failed to load dashboard data"));
     } finally {
@@ -715,6 +957,13 @@ export default function AdminDashboard() {
       } else {
         if (field.hiddenInForm && !value) continue; // Skip empty hidden fields
         if (typeof value === "string") value = value.trim();
+        if (field.json && typeof value === "string" && value) {
+          try {
+            value = JSON.parse(value);
+          } catch (error) {
+            throw new Error(`${field.label} must be valid JSON`);
+          }
+        }
         payload[field.key] = value === "" ? null : value;
       }
     }
@@ -750,6 +999,65 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       setStatus(getApiError(error, "File upload failed"));
+    }
+  };
+
+  const uploadLibraryFile = async (file) => {
+    if (!file) return;
+    try {
+      setStatus("Uploading file...");
+      await uploadFile(file);
+      const filesResponse = await api.get("/uploads").catch(() => ({ data: [] }));
+      setRows((prev) => ({ ...prev, uploads: filesResponse.data || [] }));
+      setStatus("File uploaded successfully");
+    } catch (error) {
+      setStatus(getApiError(error, "Failed to upload file"));
+    }
+  };
+
+  const deleteUpload = async (id) => {
+    if (!window.confirm("Delete this uploaded file?")) return;
+    try {
+      await api.delete(`/uploads/${id}`);
+      const filesResponse = await api.get("/uploads").catch(() => ({ data: [] }));
+      setRows((prev) => ({ ...prev, uploads: filesResponse.data || [] }));
+      setStatus("Uploaded file deleted");
+    } catch (error) {
+      setStatus(getApiError(error, "Failed to delete uploaded file"));
+    }
+  };
+
+  const copyUploadPath = async (path) => {
+    if (!path) return;
+    try {
+      await navigator.clipboard.writeText(path);
+      setStatus(`Copied path: ${path}`);
+    } catch (error) {
+      setStatus("Could not copy path automatically. Please copy it manually.");
+    }
+  };
+
+  const resetSiteSettingForm = () => {
+    setSiteSettingForm({ key: "", value: "" });
+    setEditingSiteSetting("");
+  };
+
+  const saveSiteSetting = async (event) => {
+    event.preventDefault();
+    if (!siteSettingForm.key.trim()) {
+      setStatus("Setting key is required");
+      return;
+    }
+    try {
+      await api.put(`/site/settings/${encodeURIComponent(siteSettingForm.key.trim())}`, {
+        value: siteSettingForm.value,
+      });
+      const settingsResponse = await api.get("/site/settings").catch(() => ({ data: {} }));
+      setSiteSettings(mapSiteSettingsRows(settingsResponse.data || {}));
+      setStatus(`Site setting ${siteSettingForm.key.trim()} saved`);
+      resetSiteSettingForm();
+    } catch (error) {
+      setStatus(getApiError(error, "Failed to save site setting"));
     }
   };
 
@@ -800,7 +1108,11 @@ export default function AdminDashboard() {
     const cfg = RESOURCE_CONFIG[section];
     const next = emptyFormFor(section);
     for (const field of cfg.fields) {
-      next[field.key] = row[field.key] ?? (field.type === "checkbox" ? false : "");
+      let value = row[field.key];
+      if (field.json && value && typeof value === "object") {
+        value = JSON.stringify(value, null, 2);
+      }
+      next[field.key] = value ?? (field.type === "checkbox" ? false : "");
     }
     setForms((prev) => ({ ...prev, [section]: next }));
     setEditing((prev) => ({ ...prev, [section]: row[cfg.idKey] }));
@@ -939,8 +1251,35 @@ export default function AdminDashboard() {
         {status && <p className="adm-status">{status}</p>}
       </div>
     );
+  } else if (active === "uploads") {
+    content = (
+      <UploadsPanel
+        uploads={rows.uploads}
+        status={status}
+        uploading={uploading}
+        onUpload={uploadLibraryFile}
+        onDelete={deleteUpload}
+        onCopyPath={copyUploadPath}
+      />
+    );
   } else if (active === "messages") {
     content = <MessagesPanel messages={rows.messages} onUpdateStatus={updateMessageStatus} onDelete={deleteMessage} status={status} />;
+  } else if (active === "siteSettings") {
+    content = (
+      <SiteSettingsPanel
+        settings={siteSettings}
+        form={siteSettingForm}
+        editingKey={editingSiteSetting}
+        onChange={(field, value) => setSiteSettingForm((prev) => ({ ...prev, [field]: value }))}
+        onSubmit={saveSiteSetting}
+        onEdit={(row) => {
+          setEditingSiteSetting(row.key);
+          setSiteSettingForm({ key: row.key, value: row.value ?? "" });
+        }}
+        onCancel={resetSiteSettingForm}
+        status={status}
+      />
+    );
   } else if (active === "contactInfo") {
     content = <ContactInfoPanel contactInfo={rows.contactInfo} onSave={saveContactInfo} status={status} />;
   } else if (active === "timetables") {
