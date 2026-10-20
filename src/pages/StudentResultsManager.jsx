@@ -9,6 +9,20 @@ const programOptions = [
   { value: "FAD", label: "Fashion & Design (FAD)" },
 ];
 
+const programAliases = {
+  SWD: ["SWD", "SOD", "SOFTWARE DEVELOPMENT", "SOFTWARE"],
+  NIT: ["NIT", "NETWORKING", "NETWORK AND INTERNET"],
+  CSA: ["CSA", "COMPUTER SYSTEM", "COMPUTER SYSTEMS"],
+  ACC: ["ACC", "ACCOUNTING"],
+  FAD: ["FAD", "FASHION"],
+};
+
+const studentMatchesProgram = (student, programCode) => {
+  const aliases = programAliases[programCode] || [programCode];
+  const studentProgram = `${student.department || ""} ${student.class_level || ""}`.toUpperCase();
+  return aliases.some((alias) => studentProgram.includes(alias));
+};
+
 const emptyForm = () => ({
   student_id: "",
   program_code: "SWD",
@@ -38,6 +52,7 @@ export default function StudentResultsManager() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const activeStudents = students.filter((student) => student.is_active !== false);
+  const matchingStudents = activeStudents.filter((student) => studentMatchesProgram(student, form.program_code));
 
   const loadData = async () => {
     setLoading(true);
@@ -120,21 +135,21 @@ export default function StudentResultsManager() {
       </div>
 
       <form className="adm-form adm-results-form" onSubmit={saveResult}>
+        <label className="adm-field">
+          <span>Program</span>
+          <select required value={form.program_code} onChange={(event) => setForm((current) => ({ ...current, program_code: event.target.value, student_id: "" }))}>
+            {programOptions.map((program) => <option key={program.value} value={program.value}>{program.label}</option>)}
+          </select>
+        </label>
         <label className="adm-field adm-results-student">
           <span>Student</span>
-          <select required value={form.student_id} onChange={(event) => setField("student_id", event.target.value)}>
-            <option value="">Select a student</option>
-            {activeStudents.map((student) => (
+          <select disabled={matchingStudents.length === 0} required value={form.student_id} onChange={(event) => setField("student_id", event.target.value)}>
+            <option value="">{matchingStudents.length ? "Select a student" : "No active students found for this program"}</option>
+            {matchingStudents.map((student) => (
               <option key={student.id} value={student.id}>
                 {student.first_name} {student.last_name} — {student.student_code}{student.class_level ? ` (${student.class_level})` : ""}
               </option>
             ))}
-          </select>
-        </label>
-        <label className="adm-field">
-          <span>Program</span>
-          <select required value={form.program_code} onChange={(event) => setField("program_code", event.target.value)}>
-            {programOptions.map((program) => <option key={program.value} value={program.value}>{program.label}</option>)}
           </select>
         </label>
         <label className="adm-field">
@@ -212,7 +227,7 @@ export default function StudentResultsManager() {
           <span>Publish these results for parents</span>
         </label>
         <div className="adm-form-actions adm-field-wide">
-          <button className="adm-btn" disabled={saving || activeStudents.length === 0} type="submit">
+          <button className="adm-btn" disabled={saving || matchingStudents.length === 0} type="submit">
             {saving ? "Saving…" : "Save Results"}
           </button>
           <button className="adm-btn adm-btn-light" onClick={resetForm} type="button">Clear form</button>
