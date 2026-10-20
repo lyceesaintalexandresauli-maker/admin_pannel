@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, getApiError, mediaUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import StudentResultsManager from "./StudentResultsManager";
 import "../styles/admin.css";
 
 const SIDEBAR_ITEMS = [
@@ -11,6 +12,7 @@ const SIDEBAR_ITEMS = [
   { id: "announcements", label: "Announcements API", icon: "bi-megaphone" },
   { id: "content", label: "Content API", icon: "bi-file-earmark-text" },
   { id: "students", label: "Students API", icon: "bi-mortarboard" },
+  { id: "results", label: "Student Results", icon: "bi-journal-check" },
   { id: "staff", label: "Staff API", icon: "bi-people" },
   { id: "departments", label: "Departments API", icon: "bi-diagram-3" },
   { id: "timetables", label: "Time Tables API", icon: "bi-calendar3" },
@@ -1262,6 +1264,8 @@ export default function AdminDashboard() {
         onCopyPath={copyUploadPath}
       />
     );
+  } else if (active === "results") {
+    content = <StudentResultsManager />;
   } else if (active === "messages") {
     content = <MessagesPanel messages={rows.messages} onUpdateStatus={updateMessageStatus} onDelete={deleteMessage} status={status} />;
   } else if (active === "siteSettings") {

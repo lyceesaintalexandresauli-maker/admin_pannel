@@ -56,6 +56,12 @@ npm run build
 
 The built files will be in the `dist` directory.
 
+## Student Results
+
+Administrators can open **Student Results** in the dashboard to add or edit subject marks for an existing student, program, academic year, and term. Results remain drafts until **Publish these results for parents** is selected. Parents access published results from the public website's **Student Results** page after creating an account or signing in.
+
+Run `migrations/2026-10-20_student_results.sql` in the backend project against an existing database before deploying these changes.
+
 ## Deployment to Render
 
 ### Prerequisites
