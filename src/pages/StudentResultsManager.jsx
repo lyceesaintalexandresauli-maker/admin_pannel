@@ -1,54 +1,11 @@
 import { useEffect, useState } from "react";
-import { api, getApiError } from "../api/client";
+import { API_BASE_URL, api, getApiError } from "../api/client";
+import { getLevelLabel, getProgramForLevel, STUDENT_LEVELS } from "../constants/studentLevels";
 
-const programOptions = [
-  { value: "SWD", label: "Software Development (SWD)" },
-  { value: "NIT", label: "Networking & Internet Technology (NIT)" },
-  { value: "CSA", label: "Computer Systems & Architecture (CSA)" },
-  { value: "ACC", label: "Accounting (ACC — Senior)" },
-  { value: "FAD", label: "Fashion & Design (FAD)" },
-];
-
-const programAliases = {
-  SWD: ["SWD", "SOD", "SOFTWARE DEVELOPMENT", "SOFTWARE"],
-  NIT: ["NIT", "NETWORKING", "NETWORK AND INTERNET"],
-  CSA: ["CSA", "COMPUTER SYSTEM", "COMPUTER SYSTEMS"],
-  ACC: ["ACC", "ACCOUNTING"],
-  FAD: ["FAD", "FASHION"],
-};
-
-const levelsByProgram = {
-  SWD: ["L3SWD", "L4SWDA", "L4SWDB", "L5SWD", "L3", "L4", "L5"],
-  NIT: ["L3NIT", "L4NITA", "L4NITB", "L5NIT", "L3", "L4", "L5"],
-  CSA: ["L3CSA", "L4CSA", "L5CSA", "L3", "L4", "L5"],
-  ACC: ["S4ACC", "S5ACC", "S6ACC", "S4", "S5", "S6"],
-  FAD: ["L3FAD", "L4FAD", "L5FAD", "L3", "L4", "L5"],
-};
-
-const levelParts = (value) => {
-  const normalized = String(value || "").toUpperCase().replace(/^LEVEL/, "L").replace(/[^A-Z0-9]/g, "");
-  const base = normalized.match(/^(?:L[345]|S[456])/i)?.[0]?.toUpperCase() || "";
-  const section = base === "L4" && /[AB]$/.test(normalized) ? normalized.slice(-1) : "";
-  return { base, section };
-};
-
-const studentMatchesLevel = (studentLevel, selectedLevel) => {
-  const student = levelParts(studentLevel);
-  const selected = levelParts(selectedLevel);
-  if (!selected.base) return true;
-  if (student.base !== selected.base) return false;
-  return !student.section || !selected.section || student.section === selected.section;
-};
-
-const studentMatchesProgram = (student, programCode) => {
-  const aliases = programAliases[programCode] || [programCode];
-  const studentProgram = `${student.department || ""} ${student.class_level || ""}`.toUpperCase();
-  return aliases.some((alias) => studentProgram.includes(alias));
-};
-
+const normalizeLevel = (value) => String(value || "").toUpperCase().replace(/^LEVEL/, "L").replace(/[^A-Z0-9]/g, "");
+const studentMatchesLevel = (studentLevel, selectedLevel) => normalizeLevel(studentLevel) === normalizeLevel(selectedLevel);
 const emptyForm = () => ({
   student_id: "",
-  program_code: "SWD",
   class_level: "",
   academic_year: String(new Date().getFullYear()),
   term: "Term 1",
@@ -76,9 +33,9 @@ export default function StudentResultsManager() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const activeStudents = students.filter((student) => student.is_active !== false);
-  const matchingStudents = activeStudents.filter((student) => studentMatchesProgram(student, form.program_code));
-  const matchingLevels = levelsByProgram[form.program_code] || [];
-  const levelStudents = matchingStudents.filter((student) => studentMatchesLevel(student.class_level, form.class_level));
+  const levelStudents = form.class_level
+    ? activeStudents.filter((student) => studentMatchesLevel(student.class_level, form.class_level))
+    : [];
 
   const loadData = async () => {
     setLoading(true);
@@ -126,7 +83,6 @@ export default function StudentResultsManager() {
   const editResult = (result) => {
     setForm({
       student_id: String(result.student_id),
-      program_code: result.program_code,
       class_level: result.class_level || "",
       academic_year: result.academic_year,
       term: result.term,
@@ -149,6 +105,7 @@ export default function StudentResultsManager() {
     try {
       await api.post("/results", {
         ...form,
+        program_code: getProgramForLevel(form.class_level),
         student_id: Number(form.student_id),
         subjects: subjects.map((subject) => ({
           subject_name: subject.subject_name.trim(),
@@ -160,7 +117,9 @@ export default function StudentResultsManager() {
       await loadData();
       setStatus(form.is_published ? "Results saved and published." : "Results saved as a draft.");
     } catch (error) {
-      setStatus(getApiError(error, "Unable to save results."));
+      setStatus(!error?.response
+        ? `Cannot reach the API at ${API_BASE_URL}. Start the backend and check its database configuration.`
+        : `${getApiError(error, "Unable to save results.")} (HTTP ${error.response.status})`);
     } finally {
       setSaving(false);
     }
@@ -170,25 +129,20 @@ export default function StudentResultsManager() {
     <section className="adm-panel">
       <div className="adm-panel-head">
         <h3>Student Results</h3>
-        <p>Add each subject and its mark. Total marks are the sum of the subject marks; position ranks students by total within the same program, class/section, academic year, and term. L4 NIT and SOD sections rank separately.</p>
+        <p>Select one of the 17 program/level options to see students in that class. Add each subject mark; total marks are summed and position is ranked within that class, academic year, and term.</p>
       </div>
 
       <form className="adm-form adm-results-form" onSubmit={saveResult}>
         <label className="adm-field">
-          <span>Program</span>
-          <select required value={form.program_code} onChange={(event) => setForm((current) => ({ ...current, program_code: event.target.value, class_level: "", student_id: "" }))}>
-            {programOptions.map((program) => <option key={program.value} value={program.value}>{program.label}</option>)}
-          </select>
-        </label>
-        <label className="adm-field">
-          <span>Level / section</span>
-          <select value={form.class_level} onChange={(event) => setForm((current) => ({ ...current, class_level: event.target.value, student_id: "" }))}>
-            <option value="">All levels</option>
-            {matchingLevels.map((level) => <option key={level} value={level}>{level}</option>)}
+          <span>Program / level</span>
+          <select required value={form.class_level} onChange={(event) => setForm((current) => ({ ...current, class_level: event.target.value, student_id: "" }))}>
+            <option value="">Select program / level</option>
+            {form.class_level && !STUDENT_LEVELS.some((level) => level.value === form.class_level) && <option value={form.class_level}>{form.class_level}</option>}
+            {STUDENT_LEVELS.map((level) => <option key={level.value} value={level.value}>{level.label}</option>)}
           </select>
         </label>
         <label className="adm-field adm-results-student">
-          <span>Student</span>
+          <span>Student name</span>
           <select disabled={levelStudents.length === 0} required value={form.student_id} onChange={(event) => setField("student_id", event.target.value)}>
             <option value="">{levelStudents.length ? "Select a student" : "No active students found for this level"}</option>
             {levelStudents.map((student) => (
@@ -290,7 +244,7 @@ export default function StudentResultsManager() {
                 <tr key={result.id}>
                   <td>{result.student_name}</td>
                   <td>{result.student_code}</td>
-                  <td>{result.program_code} / {result.class_level || "—"}</td>
+                  <td>{result.program_code} / {getLevelLabel(result.class_level) || "—"}</td>
                   <td>{result.academic_year}</td>
                   <td>{result.term}</td>
                   <td>{Number(result.total_marks || 0).toFixed(2)} / {Number(result.maximum_marks || 0).toFixed(2)} ({getPercentage(result)})</td>

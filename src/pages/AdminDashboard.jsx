@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_BASE_URL, api, getApiError, mediaUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import StudentResultsManager from "./StudentResultsManager";
+import { STUDENT_LEVELS } from "../constants/studentLevels";
 import "../styles/admin.css";
 
 const SIDEBAR_ITEMS = [
@@ -69,7 +70,7 @@ const RESOURCE_CONFIG = {
       { key: "student_code", label: "Student ID", type: "text", required: true },
       { key: "first_name", label: "First name", type: "text", required: true },
       { key: "last_name", label: "Last name", type: "text", required: true },
-      { key: "class_level", label: "Level", type: "select", required: true, options: ["L3SWD", "L4SWDA", "L4SWDB", "L5SWD", "L3NIT", "L4NITA", "L4NITB", "L5NIT", "L3CSA", "L4CSA", "L5CSA", "L3FAD", "L4FAD", "L5FAD", "S4ACC", "S5ACC", "S6ACC"] },
+      { key: "class_level", label: "Level", type: "select", required: true, options: STUDENT_LEVELS.map((option) => option.value) },
     ],
     columns: ["id", "student_code", "first_name", "last_name", "class_level", "department", "is_active"],
   },
