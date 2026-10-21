@@ -71,8 +71,8 @@ const RESOURCE_CONFIG = {
       { key: "last_name", label: "Last name", type: "text", required: true },
       { key: "gender", label: "Gender", type: "text" },
       { key: "date_of_birth", label: "Date of birth", type: "date" },
-      { key: "class_level", label: "Class level", type: "text" },
-      { key: "department", label: "Department", type: "text" },
+      { key: "class_level", label: "Class / section", type: "select", options: ["L1", "L2", "L3", "L4", "L4SOD A", "L4SOD B", "L4NIT A", "L4NIT B", "L5"] },
+      { key: "department", label: "Department", type: "select", options: ["SOD", "NIT", "CSA", "FAD", "ACC", "SWD"] },
       { key: "parent_name", label: "Parent name", type: "text" },
       { key: "parent_phone", label: "Parent phone", type: "text" },
       { key: "email", label: "Email", type: "email" },
@@ -80,7 +80,7 @@ const RESOURCE_CONFIG = {
       { key: "image_path", label: "Asset path", type: "text" },
       { key: "is_active", label: "Active", type: "checkbox" },
     ],
-    columns: ["id", "student_code", "first_name", "last_name", "department", "is_active"],
+    columns: ["id", "student_code", "first_name", "last_name", "class_level", "department", "is_active"],
   },
   staff: {
     title: "Staff",
@@ -253,6 +253,16 @@ function ResourcePanel({
   status,
 }) {
   const cfg = RESOURCE_CONFIG[section];
+  const [studentSearch, setStudentSearch] = useState("");
+  const [studentLevel, setStudentLevel] = useState("");
+  const visibleRows = section === "students"
+    ? rows.filter((row) => {
+        const query = studentSearch.trim().toLowerCase();
+        const searchable = [row.student_code, row.first_name, row.last_name, row.class_level, row.department, row.email]
+          .filter(Boolean).join(" ").toLowerCase();
+        return (!query || searchable.includes(query)) && (!studentLevel || row.class_level === studentLevel);
+      })
+    : rows;
   const createMode = editingId === null;
   const fields = cfg.fields
     .filter((f) => {
@@ -371,6 +381,21 @@ function ResourcePanel({
 
       {status && <p className="adm-status">{status}</p>}
 
+      {section === "students" && (
+        <div className="adm-form" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", margin: "1rem 0" }}>
+          <label className="adm-field">
+            <span>Search students</span>
+            <input type="search" value={studentSearch} onChange={(event) => setStudentSearch(event.target.value)} placeholder="Name, student code, level, or department" />
+          </label>
+          <label className="adm-field">
+            <span>Filter by class / section</span>
+            <select value={studentLevel} onChange={(event) => setStudentLevel(event.target.value)}>
+              <option value="">All classes</option>
+              {cfg.fields.find((field) => field.key === "class_level")?.options.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+        </div>
+      )}
       <div className="adm-table-wrap">
         <table className="adm-table">
           <thead>
@@ -382,7 +407,7 @@ function ResourcePanel({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, rowIndex) => (
+            {visibleRows.map((row, rowIndex) => (
               <tr key={String((row && row[cfg.idKey]) || `${section}-${rowIndex}`)}>
                 {cfg.columns.map((col) => (
                   <td key={col}>{displayValue(row ? row[col] : null)}</td>
@@ -404,10 +429,10 @@ function ResourcePanel({
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && (
+            {visibleRows.length === 0 && (
               <tr>
                 <td colSpan={cfg.columns.length + 1} className="adm-empty">
-                  No records yet.
+                  {section === "students" && (studentSearch || studentLevel) ? "No students match your search." : "No records yet."}
                 </td>
               </tr>
             )}
