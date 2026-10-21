@@ -17,6 +17,14 @@ const programAliases = {
   FAD: ["FAD", "FASHION"],
 };
 
+const levelsByProgram = {
+  SWD: ["L3SWD", "L4SWDA", "L4SWDB", "L5SWD"],
+  NIT: ["L3NIT", "L4NITA", "L4NITB", "L5NIT"],
+  CSA: ["L3CSA", "L4CSA", "L5CSA"],
+  ACC: ["S4ACC", "S5ACC", "S6ACC"],
+  FAD: ["L3FAD", "L4FAD", "L5FAD"],
+};
+
 const studentMatchesProgram = (student, programCode) => {
   const aliases = programAliases[programCode] || [programCode];
   const studentProgram = `${student.department || ""} ${student.class_level || ""}`.toUpperCase();
@@ -26,6 +34,7 @@ const studentMatchesProgram = (student, programCode) => {
 const emptyForm = () => ({
   student_id: "",
   program_code: "SWD",
+  class_level: "",
   academic_year: String(new Date().getFullYear()),
   term: "Term 1",
   remarks: "",
@@ -53,6 +62,8 @@ export default function StudentResultsManager() {
   const [status, setStatus] = useState("");
   const activeStudents = students.filter((student) => student.is_active !== false);
   const matchingStudents = activeStudents.filter((student) => studentMatchesProgram(student, form.program_code));
+  const matchingLevels = levelsByProgram[form.program_code] || [];
+  const levelStudents = matchingStudents.filter((student) => !form.class_level || student.class_level === form.class_level);
 
   const loadData = async () => {
     setLoading(true);
@@ -89,6 +100,7 @@ export default function StudentResultsManager() {
     setForm({
       student_id: String(result.student_id),
       program_code: result.program_code,
+      class_level: result.class_level || "",
       academic_year: result.academic_year,
       term: result.term,
       remarks: result.remarks || "",
@@ -131,21 +143,28 @@ export default function StudentResultsManager() {
     <section className="adm-panel">
       <div className="adm-panel-head">
         <h3>Student Results</h3>
-        <p>Enter marks for a student, then save as a draft or publish them to the parent results page.</p>
+        <p>Add each subject and its mark. Total marks are the sum of the subject marks; position ranks students by total within the same program, class/section, academic year, and term. L4 NIT and SOD sections rank separately.</p>
       </div>
 
       <form className="adm-form adm-results-form" onSubmit={saveResult}>
         <label className="adm-field">
           <span>Program</span>
-          <select required value={form.program_code} onChange={(event) => setForm((current) => ({ ...current, program_code: event.target.value, student_id: "" }))}>
+          <select required value={form.program_code} onChange={(event) => setForm((current) => ({ ...current, program_code: event.target.value, class_level: "", student_id: "" }))}>
             {programOptions.map((program) => <option key={program.value} value={program.value}>{program.label}</option>)}
+          </select>
+        </label>
+        <label className="adm-field">
+          <span>Level / section</span>
+          <select value={form.class_level} onChange={(event) => setForm((current) => ({ ...current, class_level: event.target.value, student_id: "" }))}>
+            <option value="">All levels</option>
+            {matchingLevels.map((level) => <option key={level} value={level}>{level}</option>)}
           </select>
         </label>
         <label className="adm-field adm-results-student">
           <span>Student</span>
-          <select disabled={matchingStudents.length === 0} required value={form.student_id} onChange={(event) => setField("student_id", event.target.value)}>
-            <option value="">{matchingStudents.length ? "Select a student" : "No active students found for this program"}</option>
-            {matchingStudents.map((student) => (
+          <select disabled={levelStudents.length === 0} required value={form.student_id} onChange={(event) => setField("student_id", event.target.value)}>
+            <option value="">{levelStudents.length ? "Select a student" : "No active students found for this level"}</option>
+            {levelStudents.map((student) => (
               <option key={student.id} value={student.id}>
                 {student.first_name} {student.last_name} — {student.student_code}{student.class_level ? ` (${student.class_level})` : ""}
               </option>
@@ -227,7 +246,7 @@ export default function StudentResultsManager() {
           <span>Publish these results for parents</span>
         </label>
         <div className="adm-form-actions adm-field-wide">
-          <button className="adm-btn" disabled={saving || matchingStudents.length === 0} type="submit">
+          <button className="adm-btn" disabled={saving || levelStudents.length === 0} type="submit">
             {saving ? "Saving…" : "Save Results"}
           </button>
           <button className="adm-btn adm-btn-light" onClick={resetForm} type="button">Clear form</button>
@@ -238,21 +257,22 @@ export default function StudentResultsManager() {
       {loading ? <p>Loading students and results…</p> : (
         <div className="adm-table-wrap">
           <table className="adm-table">
-            <thead><tr><th>Student</th><th>Code</th><th>Program</th><th>Year</th><th>Term</th><th>Average</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Student</th><th>Code</th><th>Program / class</th><th>Year</th><th>Term</th><th>Total marks</th><th>Position</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               {results.map((result) => (
                 <tr key={result.id}>
                   <td>{result.student_name}</td>
                   <td>{result.student_code}</td>
-                  <td>{result.program_code}</td>
+                  <td>{result.program_code} / {result.class_level || "—"}</td>
                   <td>{result.academic_year}</td>
                   <td>{result.term}</td>
-                  <td>{getPercentage(result)}</td>
+                  <td>{Number(result.total_marks || 0).toFixed(2)} / {Number(result.maximum_marks || 0).toFixed(2)} ({getPercentage(result)})</td>
+                  <td>{result.position || "—"}</td>
                   <td>{result.is_published ? "Published" : "Draft"}</td>
                   <td><button className="adm-btn adm-btn-light" onClick={() => editResult(result)} type="button">Edit marks</button></td>
                 </tr>
               ))}
-              {results.length === 0 && <tr><td className="adm-empty" colSpan={8}>No results have been entered yet.</td></tr>}
+              {results.length === 0 && <tr><td className="adm-empty" colSpan={9}>No results have been entered yet.</td></tr>}
             </tbody>
           </table>
         </div>

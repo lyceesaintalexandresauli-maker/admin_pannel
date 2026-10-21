@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, getApiError, mediaUrl } from "../api/client";
+import { API_BASE_URL, api, getApiError, mediaUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import StudentResultsManager from "./StudentResultsManager";
 import "../styles/admin.css";
@@ -66,19 +66,10 @@ const RESOURCE_CONFIG = {
     endpoint: "/students",
     idKey: "id",
     fields: [
-      { key: "student_code", label: "Student code", type: "text", required: true },
+      { key: "student_code", label: "Student ID", type: "text", required: true },
       { key: "first_name", label: "First name", type: "text", required: true },
       { key: "last_name", label: "Last name", type: "text", required: true },
-      { key: "gender", label: "Gender", type: "text" },
-      { key: "date_of_birth", label: "Date of birth", type: "date" },
-      { key: "class_level", label: "Class / section", type: "select", options: ["L1", "L2", "L3", "L4", "L4SOD A", "L4SOD B", "L4NIT A", "L4NIT B", "L5"] },
-      { key: "department", label: "Department", type: "select", options: ["SOD", "NIT", "CSA", "FAD", "ACC", "SWD"] },
-      { key: "parent_name", label: "Parent name", type: "text" },
-      { key: "parent_phone", label: "Parent phone", type: "text" },
-      { key: "email", label: "Email", type: "email" },
-      { key: "address", label: "Address", type: "textarea" },
-      { key: "image_path", label: "Asset path", type: "text" },
-      { key: "is_active", label: "Active", type: "checkbox" },
+      { key: "class_level", label: "Level", type: "select", required: true, options: ["L3SWD", "L4SWDA", "L4SWDB", "L5SWD", "L3NIT", "L4NITA", "L4NITB", "L5NIT", "L3CSA", "L4CSA", "L5CSA", "L3FAD", "L4FAD", "L5FAD", "S4ACC", "S5ACC", "S6ACC"] },
     ],
     columns: ["id", "student_code", "first_name", "last_name", "class_level", "department", "is_active"],
   },
@@ -279,7 +270,6 @@ function ResourcePanel({
   const pathFields = cfg.fields.filter((f) => f.key.endsWith("_path"));
   const [targetField, setTargetField] = useState(pathFields[0]?.key || "");
   const pickerMeta = getPickerMeta(targetField);
-
   useEffect(() => {
     setTargetField(pathFields[0]?.key || "");
   }, [section]);
@@ -316,6 +306,12 @@ function ResourcePanel({
         </div>
       )}
 
+      {section === "students" && (
+        <p className="adm-status" aria-live="polite">
+          Add a student with only the Student ID, first name, last name, and Level. The level identifies the course and section, including L4SWDA/L4SWDB and L4NITA/L4NITB.
+        </p>
+      )}
+
       <form className="adm-form" onSubmit={onSubmit}>
         {fields.map((field) => (
           <label key={field.key} className={field.type === "textarea" ? "adm-field adm-field-wide" : "adm-field"}>
@@ -339,7 +335,7 @@ function ResourcePanel({
                 onChange={(e) => onChange(field.key, e.target.value)}
               >
                 <option value="">Select option</option>
-                {(field.options || []).map((option) => (
+                {[...(form[field.key] && !(field.options || []).includes(form[field.key]) ? [form[field.key]] : []), ...(field.options || [])].map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -391,7 +387,7 @@ function ResourcePanel({
             <span>Filter by class / section</span>
             <select value={studentLevel} onChange={(event) => setStudentLevel(event.target.value)}>
               <option value="">All classes</option>
-              {cfg.fields.find((field) => field.key === "class_level")?.options.map((option) => <option key={option} value={option}>{option}</option>)}
+              {[...new Set(rows.map((row) => row.class_level).filter(Boolean))].sort().map((option) => <option key={option} value={option}>{option}</option>)}
             </select>
           </label>
         </div>
@@ -1125,7 +1121,9 @@ export default function AdminDashboard() {
       resetSectionForm(section);
       setEditing(prev => ({ ...prev, [section]: null }));
     } catch (error) {
-      const message = getApiError(error, `Failed to save ${cfg.title.toLowerCase()}`);
+      const message = !error?.response
+        ? `Cannot reach the API at ${API_BASE_URL}. Start the backend and check its database configuration.`
+        : getApiError(error, `Failed to save ${cfg.title.toLowerCase()}`);
       console.error("[save error]", error?.response?.status, error?.response?.data, payload);
       setStatus(`${message} (status: ${error?.response?.status || 'network'})`);
     }
