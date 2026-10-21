@@ -18,11 +18,26 @@ const programAliases = {
 };
 
 const levelsByProgram = {
-  SWD: ["L3SWD", "L4SWDA", "L4SWDB", "L5SWD"],
-  NIT: ["L3NIT", "L4NITA", "L4NITB", "L5NIT"],
-  CSA: ["L3CSA", "L4CSA", "L5CSA"],
-  ACC: ["S4ACC", "S5ACC", "S6ACC"],
-  FAD: ["L3FAD", "L4FAD", "L5FAD"],
+  SWD: ["L3SWD", "L4SWDA", "L4SWDB", "L5SWD", "L3", "L4", "L5"],
+  NIT: ["L3NIT", "L4NITA", "L4NITB", "L5NIT", "L3", "L4", "L5"],
+  CSA: ["L3CSA", "L4CSA", "L5CSA", "L3", "L4", "L5"],
+  ACC: ["S4ACC", "S5ACC", "S6ACC", "S4", "S5", "S6"],
+  FAD: ["L3FAD", "L4FAD", "L5FAD", "L3", "L4", "L5"],
+};
+
+const levelParts = (value) => {
+  const normalized = String(value || "").toUpperCase().replace(/^LEVEL/, "L").replace(/[^A-Z0-9]/g, "");
+  const base = normalized.match(/^(?:L[345]|S[456])/i)?.[0]?.toUpperCase() || "";
+  const section = base === "L4" && /[AB]$/.test(normalized) ? normalized.slice(-1) : "";
+  return { base, section };
+};
+
+const studentMatchesLevel = (studentLevel, selectedLevel) => {
+  const student = levelParts(studentLevel);
+  const selected = levelParts(selectedLevel);
+  if (!selected.base) return true;
+  if (student.base !== selected.base) return false;
+  return !student.section || !selected.section || student.section === selected.section;
 };
 
 const studentMatchesProgram = (student, programCode) => {
@@ -63,18 +78,30 @@ export default function StudentResultsManager() {
   const activeStudents = students.filter((student) => student.is_active !== false);
   const matchingStudents = activeStudents.filter((student) => studentMatchesProgram(student, form.program_code));
   const matchingLevels = levelsByProgram[form.program_code] || [];
-  const levelStudents = matchingStudents.filter((student) => !form.class_level || student.class_level === form.class_level);
+  const levelStudents = matchingStudents.filter((student) => studentMatchesLevel(student.class_level, form.class_level));
 
   const loadData = async () => {
     setLoading(true);
     setStatus("");
     try {
-      const [studentResponse, resultResponse] = await Promise.all([
+      const [studentRequest, resultRequest] = await Promise.allSettled([
         api.get("/students"),
         api.get("/results"),
       ]);
-      setStudents(Array.isArray(studentResponse.data) ? studentResponse.data : []);
-      setResults(Array.isArray(resultResponse.data) ? resultResponse.data : []);
+      const messages = [];
+      if (studentRequest.status === "fulfilled") {
+        setStudents(Array.isArray(studentRequest.value.data) ? studentRequest.value.data : []);
+      } else {
+        setStudents([]);
+        messages.push(`Students could not load: ${getApiError(studentRequest.reason, "API unavailable")}`);
+      }
+      if (resultRequest.status === "fulfilled") {
+        setResults(Array.isArray(resultRequest.value.data) ? resultRequest.value.data : []);
+      } else {
+        setResults([]);
+        messages.push(`Existing results could not load: ${getApiError(resultRequest.reason, "API unavailable")}`);
+      }
+      setStatus(messages.join(" "));
     } catch (error) {
       setStatus(getApiError(error, "Unable to load students and results."));
     } finally {
