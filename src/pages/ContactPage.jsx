@@ -1,43 +1,39 @@
-import Seo from "../components/Seo";
+import { useEffect, useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
+import EditableWebsitePage from "../components/EditableWebsitePage";
+import { api } from "../api/client";
 
 export default function ContactPage() {
+  const outlet = useOutletContext() || {};
+  const [contactRows, setContactRows] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    api.get("/contact")
+      .then(({ data }) => { if (active && Array.isArray(data)) setContactRows(data); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const contact = useMemo(() => contactRows.reduce((result, row) => {
+    result[String(row.type || "").toLowerCase()] = row.value;
+    return result;
+  }, {}), [contactRows]);
+
+  const address = contact.address || outlet.settings?.location || "Muhura, Rwanda";
+  const contactCopy = [
+    `Email: ${outlet.settings?.primary_email || contact.email || "Contact the school for email details."}`,
+    `Phone: ${outlet.settings?.primary_phone || contact.phone || "Contact the school for phone details."}`,
+    `Address: ${String(address).replace(/<br\s*\/?\s*>/gi, "\n")}`,
+  ].join("\n");
+
   return (
-    <main className="main">
-      <Seo
-        title="Contact Us - Lycee Saint Alexandre Sauli de Muhura"
-        description="Get in touch with Lycee Saint Alexandre Sauli de Muhura for any inquiries."
-        path="/contact"
-      />
-
-      <div className="page-title" data-aos="fade">
-        <div className="heading">
-          <div className="container">
-            <div className="row d-flex justify-content-center text-center">
-              <div className="col-lg-8">
-                <h1>Contact Us</h1>
-                <p className="mb-0">Get in touch with us for any inquiries</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section className="section py-5">
-        <div className="container">
-          <div className="row justify-content-center" data-aos="fade-up">
-            <div className="col-lg-10">
-              <div className="card">
-                <div className="card-body p-5">
-                  <h3 className="mb-4">Contact Information</h3>
-                  <p><strong>Email:</strong> info@lyceesaintalexandre.rw</p>
-                  <p><strong>Phone:</strong> +250 XXX XXX XXX</p>
-                  <p><strong>Address:</strong> Muhura, Rwanda</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    <EditableWebsitePage
+      page="contact"
+      title="Contact Us"
+      subtitle="Get in touch with the school"
+      description="Contact Lycee Saint Alexandre Sauli de Muhura for admissions, programs, and general school information."
+      appendSections={[{ section: "contact", title: "Contact Information", content: contactCopy }]}
+    />
   );
 }

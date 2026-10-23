@@ -1,36 +1,16 @@
-import Seo from "../components/Seo";
+import EditableWebsitePage from "../components/EditableWebsitePage";
 
 export default function SodPage() {
   return (
-    <main className="main">
-      <Seo
-        title="School of Design - Lycee Saint Alexandre Sauli de Muhura"
-        description="School of Design programs at Lycee Saint Alexandre Sauli de Muhura."
-        path="/sod"
-      />
-
-      <div className="page-title" data-aos="fade">
-        <div className="heading">
-          <div className="container">
-            <div className="row d-flex justify-content-center text-center">
-              <div className="col-lg-8">
-                <h1>School of Design</h1>
-                <p className="mb-0">Creative design programs</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section className="section py-5">
-        <div className="container">
-          <div className="row justify-content-center" data-aos="fade-up">
-            <div className="col-lg-10">
-              <p>School of Design information coming soon.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    <EditableWebsitePage
+      page="sod"
+      title="Software Development"
+      subtitle="Software Development (SOD) program"
+      description="Explore the Software Development program at Lycee Saint Alexandre Sauli de Muhura."
+      fallbackSections={[
+        { section: "intro", title: "Software Development", content: "Students build the skills to design, create, test, and maintain software." },
+        { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
+      ]}
+    />
   );
 }

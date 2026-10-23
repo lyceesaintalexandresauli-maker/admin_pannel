@@ -1,36 +1,39 @@
-import Seo from "../components/Seo";
+import WebsiteCollectionPage from "../components/WebsiteCollectionPage";
+
+const formatSchedule = (schedule) => {
+  if (typeof schedule === "string") {
+    try {
+      return JSON.stringify(JSON.parse(schedule), null, 2);
+    } catch {
+      return schedule;
+    }
+  }
+  return JSON.stringify(schedule || {}, null, 2);
+};
 
 export default function TimetablesPage() {
   return (
-    <main className="main">
-      <Seo
-        title="Timetables - Lycee Saint Alexandre Sauli de Muhura"
-        description="View class and exam timetables at Lycee Saint Alexandre Sauli de Muhura."
-        path="/timetables"
-      />
-
-      <div className="page-title" data-aos="fade">
-        <div className="heading">
-          <div className="container">
-            <div className="row d-flex justify-content-center text-center">
-              <div className="col-lg-8">
-                <h1>Timetables</h1>
-                <p className="mb-0">View class and exam timetables</p>
-              </div>
-            </div>
+    <WebsiteCollectionPage
+      endpoint="/timetables"
+      title="Time Tables"
+      subtitle="Published class timetables"
+      description="View published class and exam timetables at Lycee Saint Alexandre Sauli de Muhura."
+      emptyMessage="No published timetables are available right now."
+      filterRecord={(timetable) => String(timetable.status || "").toLowerCase() === "published"}
+      renderRecord={(timetable) => (
+        <article className="card h-100 border-0 shadow-sm">
+          <div className="card-body p-4">
+            <span className="badge text-bg-light mb-2">{timetable.status}</span>
+            <h2 className="h5 card-title">{timetable.class_name}</h2>
+            <p className="text-muted mb-3">
+              {[timetable.department, timetable.trade_level, timetable.academic_year, timetable.term].filter(Boolean).join(" | ")}
+            </p>
+            <pre className="small bg-light rounded p-3 mb-0" style={{ maxHeight: 320, overflow: "auto", whiteSpace: "pre-wrap" }}>
+              {formatSchedule(timetable.schedule_data)}
+            </pre>
           </div>
-        </div>
-      </div>
-
-      <section className="section py-5">
-        <div className="container">
-          <div className="row justify-content-center" data-aos="fade-up">
-            <div className="col-lg-10">
-              <p>Timetables coming soon.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+        </article>
+      )}
+    />
   );
 }

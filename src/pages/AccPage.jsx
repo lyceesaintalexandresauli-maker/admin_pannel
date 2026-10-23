@@ -1,36 +1,16 @@
-import Seo from "../components/Seo";
+import EditableWebsitePage from "../components/EditableWebsitePage";
 
 export default function AccPage() {
   return (
-    <main className="main">
-      <Seo
-        title="School of Accounting - Lycee Saint Alexandre Sauli de Muhura"
-        description="School of Accounting and Finance programs at Lycee Saint Alexandre Sauli de Muhura."
-        path="/acc"
-      />
-
-      <div className="page-title" data-aos="fade">
-        <div className="heading">
-          <div className="container">
-            <div className="row d-flex justify-content-center text-center">
-              <div className="col-lg-8">
-                <h1>School of Accounting</h1>
-                <p className="mb-0">Accounting and finance programs</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section className="section py-5">
-        <div className="container">
-          <div className="row justify-content-center" data-aos="fade-up">
-            <div className="col-lg-10">
-              <p>School of Accounting information coming soon.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    <EditableWebsitePage
+      page="acc"
+      title="School of Accounting"
+      subtitle="Accounting and finance programs"
+      description="Learn about Accounting and Finance at Lycee Saint Alexandre Sauli de Muhura."
+      fallbackSections={[
+        { section: "intro", title: "Accounting", content: "Students learn the foundations of accounting, finance, and responsible business practice." },
+        { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
+      ]}
+    />
   );
 }

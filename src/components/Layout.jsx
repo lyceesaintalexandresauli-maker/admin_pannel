@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { api } from "../api/client";
+import { api, mediaUrl } from "../api/client";
 import NavTree from "./NavTree";
 
 const fallbackNavigation = [
@@ -33,7 +33,7 @@ const fallbackNavigation = [
   { id: 14, label: "Contact", href: "/contact", children: [] },
 ];
 
-const BOOTSTRAP_CACHE_TTL_MS = 5 * 60 * 1000;
+const BOOTSTRAP_CACHE_TTL_MS = 30 * 1000;
 
 const pathToPage = (pathname) => {
   if (!pathname || pathname === "/") return "index";
@@ -155,13 +155,25 @@ export default function Layout() {
     }
   }, []);
 
+  const schoolName = boot.settings.school_name || "LYCEE SAINT ALEXANDRE";
+  const schoolTagline = boot.settings.school_tagline || "SAULI DE MUHURA";
+  const schoolSponsor = boot.settings.school_sponsor || "PERES BARNABITES";
+  const schoolLogo = mediaUrl(boot.settings.school_logo) || "/assets/img/logo1.jpg";
+  const socialLinks = [
+    { key: "facebook_url", label: "Facebook", icon: "bi-facebook" },
+    { key: "twitter_url", label: "X / Twitter", icon: "bi-twitter" },
+    { key: "instagram_url", label: "Instagram", icon: "bi-instagram" },
+    { key: "linkedin_url", label: "LinkedIn", icon: "bi-linkedin" },
+    { key: "youtube_url", label: "YouTube", icon: "bi-youtube" },
+  ].filter((link) => boot.settings[link.key]);
+
   return (
     <div className="app-shell index-page">
       <header
         id="header"
         className="header fixed-top"
         style={{
-          backgroundColor: "#E6C56A",
+          backgroundColor: boot.settings.primary_color || "#E6C56A",
           padding: "10px 0",
           position: "fixed",
           top: "0",
@@ -175,8 +187,8 @@ export default function Layout() {
         <div className="container-fluid px-3 px-sm-4 d-flex align-items-center justify-content-between">
           <Link to="/" className="logo d-flex align-items-center gap-2 text-decoration-none flex-shrink-0">
             <img
-              src="/assets/img/logo1.jpg"
-              alt="School Logo"
+              src={schoolLogo}
+              alt={`${schoolName} logo`}
               style={{
                 width: "clamp(32px, 6vw, 40px)",
                 height: "clamp(32px, 6vw, 40px)",
@@ -191,19 +203,19 @@ export default function Layout() {
                 className="mb-0 text-white fw-bold"
                 style={{ fontSize: "clamp(0.62rem, 2.6vw, 0.7rem)", lineHeight: "1.1", letterSpacing: "0.3px" }}
               >
-                LYCEE S<sup>T</sup> ALEXANDRE
+                {schoolName}
               </h1>
               <p
                 className="mb-0 text-white fw-bold"
                 style={{ fontSize: "clamp(0.58rem, 2.35vw, 0.65rem)", lineHeight: "1.1", letterSpacing: "0.3px" }}
               >
-                SAULI DE MUHURA
+                {schoolTagline}
               </p>
               <p
                 className="mb-0 text-white fw-bold"
                 style={{ fontSize: "clamp(0.58rem, 2.35vw, 0.65rem)", lineHeight: "1.1", letterSpacing: "0.3px" }}
               >
-                PERES BARNABITES
+                {schoolSponsor}
               </p>
             </div>
           </Link>
@@ -228,14 +240,14 @@ export default function Layout() {
 
       <div style={{ height: "clamp(56px, 8vw, 65px)" }}></div>
 
-      <Outlet />
+      <Outlet context={{ settings: boot.settings, content: boot.content, page: pathToPage(pathname) }} />
 
       <footer id="footer" className="footer">
         <div className="footer-content">
           <div className="footer-section">
             <h4>School Contact</h4>
             <p className="mb-2">
-              Quality education, moral formation, and practical training for future leaders.
+              {boot.settings.school_description || "Quality education, moral formation, and practical training for future leaders."}
             </p>
             <p><strong>Email:</strong> {boot.settings.primary_email || "lycemuhur@gmail.com"}</p>
             {boot.settings.primary_phone && <p><strong>Phone:</strong> {boot.settings.primary_phone}</p>}
@@ -255,16 +267,17 @@ export default function Layout() {
           <div className="footer-section">
             <h4>Follow Us</h4>
             <div className="social-icons">
-              <a href="#" target="_blank" rel="noopener"><i className="bi bi-facebook"></i></a>
-              <a href="#" target="_blank" rel="noopener"><i className="bi bi-twitter"></i></a>
-              <a href="#" target="_blank" rel="noopener"><i className="bi bi-instagram"></i></a>
-              <a href="#" target="_blank" rel="noopener"><i className="bi bi-linkedin"></i></a>
-              <a href="#" target="_blank" rel="noopener"><i className="bi bi-youtube"></i></a>
+              {socialLinks.map((link) => (
+                <a key={link.key} href={link.href || boot.settings[link.key]} target="_blank" rel="noopener noreferrer" aria-label={link.label}>
+                  <i className={`bi ${link.icon}`}></i>
+                </a>
+              ))}
+              {socialLinks.length === 0 && <p className="mb-0">Social media links coming soon.</p>}
             </div>
           </div>
         </div>
         <div className="footer-bottom">
-          &copy; {new Date().getFullYear()} <strong>LYCEE SAINT ALEXANDRE SAULI DE MUHURA</strong> All Rights Reserved
+          &copy; {new Date().getFullYear()} <strong>{schoolName} {schoolTagline}</strong> All Rights Reserved
         </div>
       </footer>
 
