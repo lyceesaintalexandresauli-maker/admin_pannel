@@ -67,12 +67,12 @@ const RESOURCE_CONFIG = {
     endpoint: "/students",
     idKey: "id",
     fields: [
-      { key: "student_code", label: "Student ID", type: "text", required: true },
+      { key: "student_code", label: "Student code", type: "text", required: true },
       { key: "first_name", label: "First name", type: "text", required: true },
       { key: "last_name", label: "Last name", type: "text", required: true },
-      { key: "class_level", label: "Level", type: "select", required: true, options: STUDENT_LEVELS.map((option) => option.value) },
+      { key: "class_level", label: "Program / level", type: "select", required: true, options: STUDENT_LEVELS },
     ],
-    columns: ["id", "student_code", "first_name", "last_name", "class_level", "department", "is_active"],
+    columns: ["student_code", "first_name", "last_name", "class_level"],
   },
   staff: {
     title: "Staff",

@@ -13,15 +13,91 @@ const emptyForm = () => ({
   is_published: false,
 });
 
-const getPercentage = (result) => {
-  const totals = result.subjects.reduce(
+const summarizeMarks = (subjects) => {
+  const hasInvalidMarks = subjects.some((subject) => {
+    if (!subject.subject_name.trim() && subject.score === "" && subject.max_score === "") return false;
+    const score = Number(subject.score);
+    const maximum = Number(subject.max_score);
+    return !subject.subject_name.trim()
+      || subject.score === ""
+      || subject.max_score === ""
+      || !Number.isFinite(score)
+      || !Number.isFinite(maximum)
+      || score < 0
+      || maximum <= 0
+      || score > maximum;
+  });
+  const totals = subjects.reduce((sum, subject) => {
+    const score = Number(subject.score);
+    const maximum = Number(subject.max_score);
+    if (!subject.subject_name.trim() || subject.score === "" || subject.max_score === ""
+      || !Number.isFinite(score) || !Number.isFinite(maximum) || score < 0 || maximum <= 0 || score > maximum) {
+      return sum;
+    }
+    return { score: sum.score + score, maximum: sum.maximum + maximum };
+  }, { score: 0, maximum: 0 });
+  return {
+    ...totals,
+    average: totals.maximum ? (totals.score / totals.maximum) * 100 : null,
+    hasInvalidMarks,
+  };
+};
+
+const getAverage = (result) => {
+  const totals = (result.subjects || []).reduce(
     (sum, subject) => ({
       score: sum.score + Number(subject.score || 0),
       maximum: sum.maximum + Number(subject.max_score || 0),
     }),
     { score: 0, maximum: 0 }
   );
-  return totals.maximum ? `${((totals.score / totals.maximum) * 100).toFixed(1)}%` : "—";
+  return totals.maximum ? (totals.score / totals.maximum) * 100 : null;
+};
+
+const getGrade = (average) => {
+  if (average === null) return "—";
+  if (average >= 90) return "Wonderful";
+  if (average >= 80) return "Excellent";
+  if (average >= 75) return "Very good";
+  if (average >= 70) return "Good";
+  return "Fail";
+};
+
+const formatPosition = (position) => {
+  const rank = Number(position);
+  if (!Number.isInteger(rank) || rank < 1) return position || "—";
+  const suffix = rank % 100 >= 11 && rank % 100 <= 13
+    ? "th"
+    : ({ 1: "st", 2: "nd", 3: "rd" }[rank % 10] || "th");
+  return `${rank}${suffix}`;
+};
+
+const rankResults = (results) => {
+  const groups = new Map();
+  results.forEach((result) => {
+    const groupKey = JSON.stringify([
+      normalizeLevel(result.class_level || ""),
+      result.academic_year || "",
+      result.term || "",
+    ]);
+    const group = groups.get(groupKey) || [];
+    group.push(result);
+    groups.set(groupKey, group);
+  });
+
+  return [...groups.values()].flatMap((group) => {
+    const ranked = [...group].sort((left, right) => (getAverage(right) ?? -1) - (getAverage(left) ?? -1));
+    let position = 0;
+    let previousAverage = null;
+    return ranked.map((result, index) => {
+      const average = getAverage(result);
+      if (average !== null && (previousAverage === null || Math.abs(average - previousAverage) > 1e-9)) {
+        position = index + 1;
+      }
+      previousAverage = average;
+      return { ...result, calculated_position: average === null ? null : position };
+    });
+  });
 };
 
 export default function StudentResultsManager() {
@@ -32,7 +108,20 @@ export default function StudentResultsManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const rankedResults = rankResults(results);
   const activeStudents = students.filter((student) => student.is_active !== false);
+  const currentStudent = activeStudents.find((student) => String(student.id) === String(form.student_id));
+  const markSummary = summarizeMarks(subjects);
+  const classResults = results.filter((result) =>
+    normalizeLevel(result.class_level) === normalizeLevel(form.class_level)
+    && String(result.academic_year) === String(form.academic_year)
+    && result.term === form.term
+    && String(result.student_id) !== String(form.student_id)
+  );
+  const studentsAhead = markSummary.average === null ? null : classResults.filter((result) => {
+    const average = getAverage(result);
+    return average !== null && average > markSummary.average;
+  }).length;
   const levelStudents = form.class_level
     ? activeStudents.filter((student) => studentMatchesLevel(student.class_level, form.class_level))
     : [];
@@ -100,6 +189,10 @@ export default function StudentResultsManager() {
 
   const saveResult = async (event) => {
     event.preventDefault();
+    if (markSummary.hasInvalidMarks || markSummary.average === null) {
+      setStatus("Enter a subject name and marks between 0 and the subject maximum.");
+      return;
+    }
     setSaving(true);
     setStatus("");
     try {
@@ -129,7 +222,7 @@ export default function StudentResultsManager() {
     <section className="adm-panel">
       <div className="adm-panel-head">
         <h3>Student Results</h3>
-        <p>Select one of the 17 program/level options to see students in that class. Add each subject mark; total marks are summed and position is ranked within that class, academic year, and term.</p>
+        <p>Select a program and level, enter subject marks, and review each student's average-based position within their class, academic year, and term.</p>
       </div>
 
       <form className="adm-form adm-results-form" onSubmit={saveResult}>
@@ -163,6 +256,27 @@ export default function StudentResultsManager() {
           </select>
         </label>
 
+        <section className="adm-results-preview adm-field-wide" aria-live="polite" aria-label="Live result preview">
+          <div className="adm-results-preview-heading">
+            <div>
+              <span>LIVE RESULT PREVIEW</span>
+              <strong>{currentStudent ? `${currentStudent.first_name} ${currentStudent.last_name}` : "Select a student to begin"}</strong>
+            </div>
+            {markSummary.average !== null && <span className="adm-results-preview-grade">{getGrade(markSummary.average)}</span>}
+          </div>
+          <div className="adm-results-preview-stats">
+            <div><span>Average</span><strong>{markSummary.average === null ? "—" : `${markSummary.average.toFixed(1)}%`}</strong></div>
+            <div><span>Total marks</span><strong>{markSummary.score.toFixed(1)} / {markSummary.maximum.toFixed(1)}</strong></div>
+            <div><span>Estimated position</span><strong>{studentsAhead === null ? "—" : formatPosition(studentsAhead + 1)}</strong></div>
+          </div>
+          {markSummary.average !== null && (
+            <div className="adm-results-preview-progress" role="progressbar" aria-label="Average mark" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.min(markSummary.average, 100)}>
+              <span style={{ width: `${Math.min(markSummary.average, 100)}%` }} />
+            </div>
+          )}
+          <p>Position is estimated against results already entered for this class, year, and term.</p>
+        </section>
+
         <div className="adm-field adm-field-wide">
           <span>Subject marks</span>
           <div className="adm-results-subjects">
@@ -179,6 +293,7 @@ export default function StudentResultsManager() {
                 <input
                   aria-label={`Subject ${index + 1} marks`}
                   min="0"
+                  max={subject.max_score || undefined}
                   placeholder="Mark"
                   required
                   step="0.01"
@@ -238,22 +353,27 @@ export default function StudentResultsManager() {
       {loading ? <p>Loading students and results…</p> : (
         <div className="adm-table-wrap">
           <table className="adm-table">
-            <thead><tr><th>Student</th><th>Code</th><th>Program / class</th><th>Year</th><th>Term</th><th>Total marks</th><th>Position</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Student</th><th>Code</th><th>Program / class</th><th>Year</th><th>Term</th><th>Total marks</th><th>Average</th><th>Grade</th><th>Position</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
-              {results.map((result) => (
-                <tr key={result.id}>
-                  <td>{result.student_name}</td>
-                  <td>{result.student_code}</td>
-                  <td>{result.program_code} / {getLevelLabel(result.class_level) || "—"}</td>
-                  <td>{result.academic_year}</td>
-                  <td>{result.term}</td>
-                  <td>{Number(result.total_marks || 0).toFixed(2)} / {Number(result.maximum_marks || 0).toFixed(2)} ({getPercentage(result)})</td>
-                  <td>{result.position || "—"}</td>
-                  <td>{result.is_published ? "Published" : "Draft"}</td>
-                  <td><button className="adm-btn adm-btn-light" onClick={() => editResult(result)} type="button">Edit marks</button></td>
-                </tr>
-              ))}
-              {results.length === 0 && <tr><td className="adm-empty" colSpan={9}>No results have been entered yet.</td></tr>}
+              {rankedResults.map((result) => {
+                const average = getAverage(result);
+                return (
+                  <tr key={result.id}>
+                    <td>{result.student_name}</td>
+                    <td>{result.student_code}</td>
+                    <td>{result.program_code} / {getLevelLabel(result.class_level) || "—"}</td>
+                    <td>{result.academic_year}</td>
+                    <td>{result.term}</td>
+                    <td>{Number(result.total_marks || 0).toFixed(2)} / {Number(result.maximum_marks || 0).toFixed(2)}</td>
+                    <td>{average === null ? "—" : `${average.toFixed(1)}%`}</td>
+                    <td>{getGrade(average)}</td>
+                    <td>{formatPosition(result.calculated_position)}</td>
+                    <td>{result.is_published ? "Published" : "Draft"}</td>
+                    <td><button className="adm-btn adm-btn-light" onClick={() => editResult(result)} type="button">Edit marks</button></td>
+                  </tr>
+                );
+              })}
+              {results.length === 0 && <tr><td className="adm-empty" colSpan={11}>No results have been entered yet.</td></tr>}
             </tbody>
           </table>
         </div>

@@ -38,7 +38,7 @@ function App() {
       <Route path="/login" element={<LoginPanel />} />
       <Route path="/panel-login" element={<LoginPanel />} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
     </Routes>
   );
 }
