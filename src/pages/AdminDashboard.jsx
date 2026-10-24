@@ -92,7 +92,9 @@ const RESOURCE_CONFIG = {
       { key: "title", label: "Title", type: "text", required: true },
       { key: "description", label: "Description", type: "textarea", required: true },
       { key: "category", label: "Category", type: "text" },
-      { key: "image_path", label: "Asset path", type: "text", hiddenInForm: true },
+      { key: "image_path", label: "Event image", type: "file", accept: "image/*" },
+      { key: "video_url", label: "Event video", type: "file", accept: "video/*" },
+      { key: "audio_url", label: "Event audio", type: "file", accept: "audio/*" },
     ],
     columns: ["id", "title", "category", "created_at"],
   },
@@ -317,6 +319,9 @@ const getPickerMeta = (fieldKey = "") => {
   if (key.includes("video")) {
     return { accept: "video/*", label: "Choose video" };
   }
+  if (key.includes("audio")) {
+    return { accept: "audio/*", label: "Choose audio" };
+  }
   return { accept: ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*,video/*", label: "Choose file" };
 };
 
@@ -495,6 +500,7 @@ function ResourcePanel({
             ) : field.type === "file" ? (
               <input
                 type="file"
+                accept={field.accept || getPickerMeta(field.key).accept}
                 style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.5rem' }}
                 onChange={(e) => {
                   const file = e.target.files[0];
@@ -1387,18 +1393,19 @@ export default function AdminDashboard() {
     const form = forms[section];
     
     // Check if form contains any file fields
-    const fileField = cfg.fields.find(f => f.type === "file");
+    const fileFields = cfg.fields.filter((field) => field.type === "file");
     
     let payload = createPayload(section, form, isEditing);
     
     try {
-      // If there's a file field and a file is selected, upload it first
-      if (fileField && form[fileField.key] instanceof File) {
-        setStatus("Uploading file...");
-        const uploaded = await uploadFile(form[fileField.key]);
-        if (uploaded?.path) {
-          payload[fileField.key] = uploaded.path;
+      const selectedFiles = fileFields.filter((field) => form[field.key] instanceof File);
+      for (const [index, field] of selectedFiles.entries()) {
+        setStatus(`Uploading ${cfg.title.toLowerCase()} media (${index + 1} of ${selectedFiles.length})...`);
+        const uploaded = await uploadFile(form[field.key]);
+        if (!uploaded?.path) {
+          throw new Error(`The ${field.label.toLowerCase()} upload completed without a file path.`);
         }
+        payload[field.key] = uploaded.path;
       }
       
       setStatus("Saving...");
