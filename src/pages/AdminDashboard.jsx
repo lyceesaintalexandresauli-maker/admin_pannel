@@ -4,6 +4,8 @@ import { api, getApiError, mediaUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import RichTextEditor from "../components/RichTextEditor";
 import { richTextToPlainText } from "../utils/richText";
+import StudentResultsManager from "./StudentResultsManager";
+import { STUDENT_LEVELS } from "../constants/studentLevels";
 import "../styles/admin.css";
 
 const SIDEBAR_ITEMS = [
@@ -14,6 +16,7 @@ const SIDEBAR_ITEMS = [
   { id: "announcements", label: "Announcements API", icon: "bi-megaphone" },
   { id: "content", label: "Website Content", icon: "bi-file-earmark-text" },
   { id: "students", label: "Students API", icon: "bi-mortarboard" },
+  { id: "results", label: "Student Results", icon: "bi-journal-check" },
   { id: "staff", label: "Staff API", icon: "bi-people" },
   { id: "departments", label: "Departments API", icon: "bi-diagram-3" },
   { id: "timetables", label: "Time Tables API", icon: "bi-calendar3" },
@@ -124,7 +127,7 @@ const RESOURCE_CONFIG = {
       { key: "last_name", label: "Last name", type: "text", required: true },
       { key: "gender", label: "Gender", type: "text" },
       { key: "date_of_birth", label: "Date of birth", type: "date" },
-      { key: "class_level", label: "Class level", type: "text" },
+      { key: "class_level", label: "Program / level", type: "select", required: true, options: STUDENT_LEVELS },
       { key: "department", label: "Department", type: "text" },
       { key: "parent_name", label: "Parent name", type: "text" },
       { key: "parent_phone", label: "Parent phone", type: "text" },
@@ -133,7 +136,7 @@ const RESOURCE_CONFIG = {
       { key: "image_path", label: "Asset path", type: "text" },
       { key: "is_active", label: "Active", type: "checkbox" },
     ],
-    columns: ["id", "student_code", "first_name", "last_name", "department", "is_active"],
+    columns: ["id", "student_code", "first_name", "last_name", "class_level", "department", "is_active"],
   },
   staff: {
     title: "Staff",
@@ -1073,7 +1076,7 @@ export default function AdminDashboard() {
   const adminName = user?.full_name?.trim()?.split(/\s+/)[0] || user?.username || "Admin";
   const navGroups = [
     { label: "OVERVIEW", items: SIDEBAR_ITEMS.filter((item) => item.id === "overview") },
-    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "gallery", "events", "announcements", "content", "students", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
+    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "gallery", "events", "announcements", "content", "students", "results", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
     { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users"].includes(item.id)) },
   ].map((group) => ({
     ...group,
@@ -1651,6 +1654,8 @@ export default function AdminDashboard() {
         onCopyPath={copyUploadPath}
       />
     );
+  } else if (active === "results") {
+    content = <StudentResultsManager />;
   } else if (active === "messages") {
     content = <MessagesPanel messages={rows.messages} onUpdateStatus={updateMessageStatus} onDelete={deleteMessage} status={status} />;
   } else if (active === "siteSettings") {

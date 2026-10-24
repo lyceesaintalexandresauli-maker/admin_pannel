@@ -2089,3 +2089,43 @@
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
+.adm-results-form {
+  margin-bottom: 1.25rem;
+}
+
+.adm-teacher-results {
+  width: min(1440px, 100% - 2rem);
+  margin: 1rem auto;
+}
+
+.adm-teacher-results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.adm-teacher-results-head h1 { margin: 0; }
+.adm-teacher-results-head p { margin: 0.25rem 0 0; color: #667085; }
+
+.adm-results-form select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.45rem;
+  background: #fff;
+}
+
+.adm-results-student { grid-column: 1 / -1; }
+.adm-results-subjects { display: grid; gap: 0.55rem; }
+.adm-results-subject-row { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(90px, 140px) minmax(90px, 140px) auto; gap: 0.5rem; }
+.adm-results-subject-row input { min-width: 0; }
+.adm-results-add { margin-top: 0.55rem; }
+.adm-results-publish { display: flex; grid-column: 1 / -1; align-items: center; gap: 0.55rem; font-weight: 700; }
+
+@media (max-width: 720px) {
+  .adm-results-subject-row { grid-template-columns: 1fr 1fr; }
+  .adm-results-subject-row input:first-child { grid-column: 1 / -1; }
+}

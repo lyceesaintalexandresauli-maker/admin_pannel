@@ -12,7 +12,7 @@ export default function LoginPanel() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const destinationForRole = () => "/admin";
+  const destinationForRole = (role) => role === "teacher" ? "/teacher-results" : "/admin";
 
   if (!isReady) {
     return (
@@ -57,7 +57,7 @@ export default function LoginPanel() {
           <div className="adm-login-brand">
             <img src="/img/logo1.jpg" alt="School Logo" />
             <div>
-              <span>Admin Panel</span>
+              <span>Staff Portal</span>
               <h1>Lycee Saint Alexandre Sauli de Muhura</h1>
             </div>
           </div>
@@ -66,8 +66,8 @@ export default function LoginPanel() {
             <p className="adm-login-kicker">Secure Access</p>
             <h2>Manage school content, staff updates, and timetable tools from one place.</h2>
             <p>
-              This portal is reserved for authorized administrators. Use your official
-              school account to access the dashboard safely.
+              This portal is reserved for authorized school staff. Administrators manage
+              the school dashboard, while teachers can prepare results for review.
             </p>
           </div>
 
@@ -94,8 +94,8 @@ export default function LoginPanel() {
                 <img src="/img/logo1.jpg" alt="School Logo" />
               </div>
               <p className="adm-login-kicker">Welcome Back</p>
-              <h2>Admin Sign In</h2>
-              <p>Enter your official credentials to continue to the administration dashboard.</p>
+              <h2>Staff Sign In</h2>
+              <p>Enter your official school account to continue to your staff workspace.</p>
             </div>
 
             {authConfigError && <div className="adm-login-alert adm-login-alert-warning">{authConfigError}</div>}

@@ -2,17 +2,22 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPanel from "./pages/LoginPanel";
 import ProfilePage from "./pages/ProfilePage";
 import AdminDashboard from "./pages/AdminDashboard";
+import TeacherResultsPage from "./pages/TeacherResultsPage";
 import { useAuth } from "./context/AuthContext";
 
-function ProtectedRoute({ children, requireAdmin = false }) {
-  const { isAuthenticated, isAdmin } = useAuth();
+function ProtectedRoute({ children, requireAdmin = false, requireTeacher = false }) {
+  const { isAuthenticated, isAdmin, isTeacher } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   if (requireAdmin && !isAdmin) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={isTeacher ? "/teacher-results" : "/profile"} replace />;
+  }
+
+  if (requireTeacher && !isTeacher) {
+    return <Navigate to={isAdmin ? "/admin" : "/profile"} replace />;
   }
 
   return children;
@@ -38,7 +43,8 @@ function App() {
       <Route path="/login" element={<LoginPanel />} />
       <Route path="/panel-login" element={<LoginPanel />} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/teacher-results" element={<ProtectedRoute requireTeacher><TeacherResultsPage /></ProtectedRoute>} />
     </Routes>
   );
 }

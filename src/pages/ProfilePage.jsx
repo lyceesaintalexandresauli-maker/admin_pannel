@@ -10,6 +10,8 @@ export default function ProfilePage() {
     const role = String(user?.role || "").toLowerCase();
     if (role === "admin") {
       navigate("/admin", { replace: true });
+    } else if (role === "teacher") {
+      navigate("/teacher-results", { replace: true });
     }
   }, [user, navigate]);
 
