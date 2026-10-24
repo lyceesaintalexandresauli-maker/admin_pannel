@@ -2125,7 +2125,99 @@
 .adm-results-add { margin-top: 0.55rem; }
 .adm-results-publish { display: flex; grid-column: 1 / -1; align-items: center; gap: 0.55rem; font-weight: 700; }
 
+.adm-results-preview {
+  display: grid;
+  gap: .85rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #f8fafc, #fff8f1);
+}
+
+.adm-results-preview-heading,
+.adm-results-preview-stats,
+.adm-results-preview-stats > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.adm-results-preview-heading > div {
+  display: grid;
+  gap: .2rem;
+}
+
+.adm-results-preview-heading > div > span {
+  color: #8b4b23;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.adm-results-preview-heading > div > strong {
+  color: #172b3c;
+  font-size: 1.05rem;
+}
+
+.adm-results-preview-grade {
+  padding: .35rem .75rem;
+  border-radius: 999px;
+  background: #fff0e7;
+  color: #963d0c;
+  font-size: .82rem;
+  font-weight: 850;
+}
+
+.adm-results-preview-stats {
+  align-items: stretch;
+}
+
+.adm-results-preview-stats > div {
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: .2rem;
+  padding: .7rem .8rem;
+  border: 1px solid #e8edf2;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .8);
+}
+
+.adm-results-preview-stats > div > span {
+  color: #667085;
+  font-size: .75rem;
+}
+
+.adm-results-preview-stats > div > strong {
+  color: #172b3c;
+  font-size: 1.05rem;
+}
+
+.adm-results-preview-progress {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.adm-results-preview-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #b24d12, #e2a15c);
+  transition: width .2s ease;
+}
+
+.adm-results-preview > p {
+  margin: -.35rem 0 0;
+  color: #667085;
+  font-size: .75rem;
+}
+
 @media (max-width: 720px) {
   .adm-results-subject-row { grid-template-columns: 1fr 1fr; }
   .adm-results-subject-row input:first-child { grid-column: 1 / -1; }
+  .adm-results-preview-stats { flex-direction: column; }
 }

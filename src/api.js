@@ -1,4 +1,5 @@
 import axios from "axios";
+import { STUDENT_LEVELS } from "./constants/studentLevels";
 
 const trim = (value = "") => String(value).replace(/\/+$/, "");
 const configured = trim(import.meta.env.VITE_API_BASE_URL || "");
@@ -100,16 +101,7 @@ export const RESOURCE_FIELDS = {
     { key: "student_code", label: "Student code", type: "text", required: true },
     { key: "first_name", label: "First name", type: "text", required: true },
     { key: "last_name", label: "Last name", type: "text", required: true },
-    { key: "gender", label: "Gender", type: "text", required: false },
-    { key: "date_of_birth", label: "Date of birth", type: "text", required: false },
-    { key: "class_level", label: "Class level", type: "text", required: false },
-    { key: "department", label: "Department", type: "text", required: false },
-    { key: "parent_name", label: "Parent name", type: "text", required: false },
-    { key: "parent_phone", label: "Parent phone", type: "text", required: false },
-    { key: "email", label: "Email", type: "text", required: false },
-    { key: "address", label: "Address", type: "textarea", required: false },
-    { key: "image_path", label: "Image path", type: "text", required: false },
-    { key: "is_active", label: "Active", type: "checkbox", required: false },
+    { key: "class_level", label: "Program / level", type: "select", options: STUDENT_LEVELS, required: true },
   ],
   "school-workers": [
     { key: "name", label: "Name", type: "text", required: true },

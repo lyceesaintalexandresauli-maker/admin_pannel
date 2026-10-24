@@ -78,7 +78,7 @@ export default function EditableWebsitePage({
                     <RichTextContent
                       className="website-content-copy text-muted"
                       content={section.content || section.body || ""}
-                    />
+                     />
                   </div>
                 </div>
               </article>
