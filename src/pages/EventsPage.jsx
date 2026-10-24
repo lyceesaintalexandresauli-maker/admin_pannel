@@ -1,36 +1,23 @@
-import Seo from "../components/Seo";
+import WebsiteCollectionPage from "../components/WebsiteCollectionPage";
 
 export default function EventsPage() {
   return (
-    <main className="main">
-      <Seo
-        title="Events - Lycee Saint Alexandre Sauli de Muhura"
-        description="Upcoming events and activities at Lycee Saint Alexandre Sauli de Muhura."
-        path="/events"
-      />
-
-      <div className="page-title" data-aos="fade">
-        <div className="heading">
-          <div className="container">
-            <div className="row d-flex justify-content-center text-center">
-              <div className="col-lg-8">
-                <h1>Events</h1>
-                <p className="mb-0">Stay updated with school events and activities</p>
-              </div>
-            </div>
+    <WebsiteCollectionPage
+      endpoint="/events"
+      title="Events"
+      subtitle="Stay updated with school events and activities"
+      description="Upcoming events and activities at Lycee Saint Alexandre Sauli de Muhura."
+      emptyMessage="No upcoming events at the moment."
+      renderRecord={(event, { mediaUrl }) => (
+        <article className="card h-100 border-0 shadow-sm">
+          {event.image_path && <img className="card-img-top" src={mediaUrl(event.image_path)} alt={event.title || "School event"} loading="lazy" style={{ maxHeight: 240, objectFit: "cover" }} />}
+          <div className="card-body p-4">
+            {event.category && <span className="badge text-bg-light mb-2">{event.category}</span>}
+            <h2 className="h5 card-title">{event.title}</h2>
+            <p className="card-text text-muted mb-0" style={{ whiteSpace: "pre-wrap" }}>{event.description}</p>
           </div>
-        </div>
-      </div>
-
-      <section className="section py-5">
-        <div className="container">
-          <div className="row justify-content-center" data-aos="fade-up">
-            <div className="col-lg-10">
-              <p className="text-center text-muted">No upcoming events at the moment.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+        </article>
+      )}
+    />
   );
 }

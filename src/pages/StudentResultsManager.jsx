@@ -100,7 +100,11 @@ const rankResults = (results) => {
   });
 };
 
+<<<<<<< HEAD
 export default function StudentResultsManager() {
+=======
+export default function StudentResultsManager({ isTeacher = false }) {
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
   const [students, setStudents] = useState([]);
   const [results, setResults] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -198,6 +202,10 @@ export default function StudentResultsManager() {
     try {
       await api.post("/results", {
         ...form,
+<<<<<<< HEAD
+=======
+        is_published: isTeacher ? false : form.is_published,
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
         program_code: getProgramForLevel(form.class_level),
         student_id: Number(form.student_id),
         subjects: subjects.map((subject) => ({
@@ -208,7 +216,11 @@ export default function StudentResultsManager() {
       });
       resetForm();
       await loadData();
+<<<<<<< HEAD
       setStatus(form.is_published ? "Results saved and published." : "Results saved as a draft.");
+=======
+      setStatus(!isTeacher && form.is_published ? "Results saved and published." : "Results saved as a draft for administrator review.");
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
     } catch (error) {
       setStatus(!error?.response
         ? `Cannot reach the API at ${API_BASE_URL}. Start the backend and check its database configuration.`
@@ -222,7 +234,13 @@ export default function StudentResultsManager() {
     <section className="adm-panel">
       <div className="adm-panel-head">
         <h3>Student Results</h3>
+<<<<<<< HEAD
         <p>Select a program and level, enter subject marks, and review each student's average-based position within their class, academic year, and term.</p>
+=======
+        <p>{isTeacher
+          ? "Prepare draft results for your classes. Administrators review and publish results before parents can see them."
+          : "Select a program and level, enter subject marks, and review each student's average-based position within their class, academic year, and term."}</p>
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
       </div>
 
       <form className="adm-form adm-results-form" onSubmit={saveResult}>
@@ -337,10 +355,17 @@ export default function StudentResultsManager() {
           <span>Remarks (optional)</span>
           <textarea maxLength={2000} value={form.remarks} onChange={(event) => setField("remarks", event.target.value)} />
         </label>
+<<<<<<< HEAD
         <label className="adm-results-publish">
           <input checked={form.is_published} onChange={(event) => setField("is_published", event.target.checked)} type="checkbox" />
           <span>Publish these results for parents</span>
         </label>
+=======
+        {!isTeacher && <label className="adm-results-publish">
+          <input checked={form.is_published} onChange={(event) => setField("is_published", event.target.checked)} type="checkbox" />
+          <span>Publish these results for parents</span>
+        </label>}
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
         <div className="adm-form-actions adm-field-wide">
           <button className="adm-btn" disabled={saving || levelStudents.length === 0} type="submit">
             {saving ? "Saving…" : "Save Results"}

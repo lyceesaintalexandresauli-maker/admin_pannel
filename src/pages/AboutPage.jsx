@@ -1,36 +1,17 @@
-import Seo from "../components/Seo";
+import EditableWebsitePage from "../components/EditableWebsitePage";
 
 export default function AboutPage() {
   return (
-    <main className="main">
-      <Seo
-        title="About Us - Lycee Saint Alexandre Sauli de Muhura"
-        description="Learn more about Lycee Saint Alexandre Sauli de Muhura and our mission."
-        path="/about"
-      />
-
-      <div className="page-title" data-aos="fade">
-        <div className="heading">
-          <div className="container">
-            <div className="row d-flex justify-content-center text-center">
-              <div className="col-lg-8">
-                <h1>About Us</h1>
-                <p className="mb-0">Learn more about our school and mission</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section className="section py-5">
-        <div className="container">
-          <div className="row justify-content-center" data-aos="fade-up">
-            <div className="col-lg-10">
-              <p>About page content coming soon.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+    <EditableWebsitePage
+      page="about"
+      title="About Us"
+      subtitle="Learn more about our school and mission"
+      description="Learn about Lycee Saint Alexandre Sauli de Muhura, our mission, values, and educational approach."
+      fallbackSections={[
+        { section: "intro", title: "Our School", content: "Lycee Saint Alexandre Sauli de Muhura serves students in Muhura with academic and technical education." },
+        { section: "mission", title: "Our Mission", content: "Provide quality education, moral formation, and practical training that prepare students to serve their communities." },
+        { section: "values", title: "Our Values", content: "We value learning, integrity, responsibility, service, and respect for every member of our community." },
+      ]}
+    />
   );
 }

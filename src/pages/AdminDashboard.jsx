@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL, api, getApiError, mediaUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+<<<<<<< HEAD
+=======
+import RichTextEditor from "../components/RichTextEditor";
+import { richTextToPlainText } from "../utils/richText";
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
 import StudentResultsManager from "./StudentResultsManager";
 import { STUDENT_LEVELS } from "../constants/studentLevels";
 import "../styles/admin.css";
@@ -9,9 +14,10 @@ import "../styles/admin.css";
 const SIDEBAR_ITEMS = [
   { id: "overview", label: "Dashboard", icon: "bi-grid-1x2" },
   { id: "uploads", label: "Uploads API", icon: "bi-cloud-arrow-up" },
+  { id: "gallery", label: "Website Gallery", icon: "bi-images" },
   { id: "events", label: "Events API", icon: "bi-calendar-event" },
   { id: "announcements", label: "Announcements API", icon: "bi-megaphone" },
-  { id: "content", label: "Content API", icon: "bi-file-earmark-text" },
+  { id: "content", label: "Website Content", icon: "bi-file-earmark-text" },
   { id: "students", label: "Students API", icon: "bi-mortarboard" },
   { id: "results", label: "Student Results", icon: "bi-journal-check" },
   { id: "staff", label: "Staff API", icon: "bi-people" },
@@ -23,6 +29,58 @@ const SIDEBAR_ITEMS = [
   { id: "contactInfo", label: "Contact Info API", icon: "bi-telephone" },
   { id: "messages", label: "Client Messages API", icon: "bi-inbox" },
   { id: "users", label: "Users API", icon: "bi-shield-lock" },
+];
+
+const WEBSITE_CONTENT_PAGES = [
+  { label: "Home", value: "index" },
+  { label: "Home (legacy slug)", value: "home" },
+  { label: "About", value: "about" },
+  { label: "Academic", value: "academic" },
+  { label: "Time Tables", value: "timetables" },
+  { label: "Staff", value: "trainers" },
+  { label: "Events", value: "events" },
+  { label: "Announcements", value: "anouncement" },
+  { label: "Departments", value: "departments" },
+  { label: "Gallery", value: "gallery" },
+  { label: "Fashion Design (FAD)", value: "fad" },
+  { label: "Accounting (ACC)", value: "acc" },
+  { label: "Software Development (SOD)", value: "sod" },
+  { label: "Computer Systems & Architecture (CSA)", value: "csa" },
+  { label: "Networking & Internet Technology (NIT)", value: "nit" },
+  { label: "Contact", value: "contact" },
+  { label: "Student Results page", value: "student-results" },
+];
+
+const WEBSITE_CONTENT_SECTIONS = [
+  { label: "Page banner / hero", value: "hero" },
+  { label: "Introduction", value: "intro" },
+  { label: "Mission", value: "mission" },
+  { label: "Vision", value: "vision" },
+  { label: "Values", value: "values" },
+  { label: "Programs", value: "programs" },
+  { label: "Facilities", value: "facilities" },
+  { label: "Admissions", value: "admissions" },
+  { label: "Gallery", value: "gallery" },
+  { label: "Contact details", value: "contact" },
+  { label: "SEO description", value: "seo" },
+  { label: "Custom section", value: "custom" },
+];
+
+const WEBSITE_SETTING_KEYS = [
+  { label: "School name", value: "school_name" },
+  { label: "School tagline", value: "school_tagline" },
+  { label: "School sponsor", value: "school_sponsor" },
+  { label: "School logo path", value: "school_logo" },
+  { label: "Header color", value: "primary_color" },
+  { label: "School description", value: "school_description" },
+  { label: "Primary email", value: "primary_email" },
+  { label: "Primary phone", value: "primary_phone" },
+  { label: "School location", value: "location" },
+  { label: "Facebook URL", value: "facebook_url" },
+  { label: "X / Twitter URL", value: "twitter_url" },
+  { label: "Instagram URL", value: "instagram_url" },
+  { label: "LinkedIn URL", value: "linkedin_url" },
+  { label: "YouTube URL", value: "youtube_url" },
 ];
 
 const RESOURCE_CONFIG = {
@@ -50,17 +108,17 @@ const RESOURCE_CONFIG = {
     columns: ["id", "title", "created_at"],
   },
   content: {
-    title: "Content",
+    title: "Website Content",
     endpoint: "/content",
     idKey: "id",
     fields: [
-      { key: "page", label: "Page slug", type: "text", required: true },
-      { key: "section", label: "Section", type: "text", required: true },
-      { key: "title", label: "Title", type: "text", required: true },
-      { key: "content", label: "Content", type: "textarea", required: true },
-      { key: "image_path", label: "Asset path", type: "text" },
+      { key: "page", label: "Website page slug", type: "text", placeholder: "Choose or enter a page slug", options: WEBSITE_CONTENT_PAGES, required: true },
+      { key: "section", label: "Section", type: "text", placeholder: "Choose or enter a section name", options: WEBSITE_CONTENT_SECTIONS, required: true },
+      { key: "title", label: "Section title", type: "text", placeholder: "Heading shown on the page", required: true },
+      { key: "content", label: "Section text", type: "textarea", placeholder: "Write the copy to display in this page section", required: true },
+      { key: "image_path", label: "Image/document path", type: "text" },
     ],
-    columns: ["id", "page", "section", "title"],
+    columns: ["id", "page", "section", "title", "content", "image_path"],
   },
   students: {
     title: "Students",
@@ -211,6 +269,35 @@ const displayValue = (value) => {
   return String(value).slice(0, 90);
 };
 
+const getDashboardActivity = (rows) => {
+  const sources = [
+    { key: "uploads", section: "uploads", label: "File uploaded", icon: "bi-cloud-arrow-up", title: (row) => row.original_name || row.path },
+    { key: "events", section: "events", label: "Event added", icon: "bi-calendar-event", title: (row) => row.title },
+    { key: "announcements", section: "announcements", label: "Announcement added", icon: "bi-megaphone", title: (row) => row.title },
+    { key: "content", section: "content", label: "Content updated", icon: "bi-file-earmark-text", title: (row) => row.title || row.section || row.page },
+    { key: "gallery", section: "gallery", label: "Gallery media added", icon: "bi-images", title: (row) => row.title || row.media_type || row.media_path },
+    { key: "students", section: "students", label: "Student added", icon: "bi-mortarboard", title: (row) => `${row.first_name || ""} ${row.last_name || ""}`.trim() || row.student_code },
+    { key: "messages", section: "messages", label: "Client message", icon: "bi-chat-left-text", title: (row) => row.subject || row.name },
+    { key: "timetables", section: "timetables", label: "Timetable added", icon: "bi-calendar3", title: (row) => row.class_name || row.academic_year },
+  ];
+
+  return sources
+    .flatMap((source) => (Array.isArray(rows[source.key]) ? rows[source.key] : []).map((row) => {
+      const createdAt = row.created_at || row.createdAt;
+      const date = createdAt ? new Date(createdAt) : null;
+      if (!date || Number.isNaN(date.getTime())) return null;
+      return {
+        section: source.section,
+        label: source.label,
+        icon: source.icon,
+        title: source.title(row) || source.label,
+        date,
+      };
+    }))
+    .filter(Boolean)
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
+};
+
 const mapSiteSettingsRows = (settings = {}) =>
   Object.entries(settings)
     .map(([key, value]) => ({
@@ -221,6 +308,9 @@ const mapSiteSettingsRows = (settings = {}) =>
 
 const getPickerMeta = (fieldKey = "") => {
   const key = String(fieldKey).toLowerCase();
+  if (key.includes("media")) {
+    return { accept: "image/*,video/*", label: "Choose image or video" };
+  }
   if (key.includes("image")) {
     return { accept: "image/*", label: "Choose image" };
   }
@@ -256,6 +346,22 @@ function ResourcePanel({
       })
     : rows;
   const createMode = editingId === null;
+  const [contentPageFilter, setContentPageFilter] = useState("all");
+  const [contentSearch, setContentSearch] = useState("");
+  const contentPageOptions = Array.from(new Set([
+    ...WEBSITE_CONTENT_PAGES.map((page) => page.value),
+    ...rows.map((row) => String(row?.page || "").trim()).filter(Boolean),
+  ]));
+  const visibleRows = section !== "content"
+    ? rows
+    : rows.filter((row) => {
+      const matchesPage = contentPageFilter === "all" || row.page === contentPageFilter;
+      const searchText = [row.page, row.section, row.title, row.content, row.image_path]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return matchesPage && searchText.includes(contentSearch.trim().toLowerCase());
+    });
   const fields = cfg.fields
     .filter((f) => {
       if (createMode && f.editOnly) return false;
@@ -271,6 +377,11 @@ function ResourcePanel({
   const pathFields = cfg.fields.filter((f) => f.key.endsWith("_path"));
   const [targetField, setTargetField] = useState(pathFields[0]?.key || "");
   const pickerMeta = getPickerMeta(targetField);
+<<<<<<< HEAD
+=======
+  const targetIsImage = targetField.toLowerCase().includes("image") || (section === "gallery" && form.media_type === "image");
+
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
   useEffect(() => {
     setTargetField(pathFields[0]?.key || "");
   }, [section]);
@@ -279,8 +390,36 @@ function ResourcePanel({
     <div className="adm-panel">
       <div className="adm-panel-head">
         <h3>{cfg.title}</h3>
-        <p>Connected to `{cfg.endpoint}`</p>
+        <p>{section === "content" ? "Edit page copy and media. Add one row per section; use hero for the banner and seo for the search description." : `Connected to ${cfg.endpoint}`}</p>
       </div>
+
+      {section === "content" && (
+        <div className="adm-content-browser">
+          <label className="adm-field">
+            <span>Website page</span>
+            <select value={contentPageFilter} onChange={(event) => setContentPageFilter(event.target.value)}>
+              <option value="all">All pages</option>
+              {contentPageOptions.map((page) => {
+                const pageLabel = WEBSITE_CONTENT_PAGES.find((option) => option.value === page)?.label || page;
+                return <option key={page} value={page}>{pageLabel}</option>;
+              })}
+            </select>
+          </label>
+          <label className="adm-field">
+            <span>Search page content</span>
+            <input
+              type="search"
+              value={contentSearch}
+              onChange={(event) => setContentSearch(event.target.value)}
+              placeholder="Search titles, sections, or text"
+            />
+          </label>
+          <div className="adm-content-count" aria-live="polite">
+            <strong>{visibleRows.length}</strong>
+            <span>{visibleRows.length === 1 ? "section" : "sections"}</span>
+          </div>
+        </div>
+      )}
 
       {pathFields.length > 0 && section !== "announcements" && (
         <div className="adm-upload-inline">
@@ -304,6 +443,16 @@ function ResourcePanel({
               onChange={(e) => onUploadAndAssign(e.target.files?.[0], targetField)}
             />
           </div>
+          {form[targetField] && (
+            <div className="adm-asset-preview">
+              {targetIsImage && (
+                <img src={mediaUrl(form[targetField])} alt="Selected website media" />
+              )}
+              <a href={mediaUrl(form[targetField])} target="_blank" rel="noopener noreferrer">
+                Preview current asset
+              </a>
+            </div>
+          )}
         </div>
       )}
 
@@ -314,6 +463,7 @@ function ResourcePanel({
       )}
 
       <form className="adm-form" onSubmit={onSubmit}>
+<<<<<<< HEAD
         {fields.map((field) => (
           <label key={field.key} className={field.type === "textarea" ? "adm-field adm-field-wide" : "adm-field"}>
             <span>{field.label}</span>
@@ -362,10 +512,109 @@ function ResourcePanel({
             {field.type === "file" && form[field.key] && (
               <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
                 Selected: {form[field.key] instanceof File ? form[field.key].name : form[field.key]}
+=======
+        {fields.map((field) => {
+          const fieldClass = field.type === "textarea" || (section === "content" && field.key === "content")
+            ? "adm-field adm-field-wide"
+            : "adm-field";
+
+          if (section === "content" && field.key === "content") {
+            return (
+              <div key={field.key} className={fieldClass}>
+                <span>{field.label}</span>
+                <RichTextEditor
+                  value={form[field.key] ?? ""}
+                  placeholder={field.placeholder}
+                  required={!!field.required}
+                  onChange={(value) => onChange(field.key, value)}
+                />
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
               </div>
-            )}
-          </label>
-        ))}
+            );
+          }
+
+          return (
+            <label key={field.key} className={fieldClass}>
+              <span>{field.label}</span>
+              {field.type === "textarea" ? (
+                <textarea
+                  value={form[field.key] ?? ""}
+                  placeholder={field.placeholder || ""}
+                  required={!!field.required}
+                  onChange={(e) => onChange(field.key, e.target.value)}
+                />
+              ) : field.type === "text" && field.options?.length ? (
+                <>
+                  <input
+                    type="text"
+                    list={`adm-options-${section}-${field.key}`}
+                    placeholder={field.placeholder || ""}
+                    value={form[field.key] ?? ""}
+                    required={!!field.required}
+                    onChange={(e) => onChange(field.key, e.target.value)}
+                  />
+                  <datalist id={`adm-options-${section}-${field.key}`}>
+                    {field.options.map((option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                        label={option.label}
+                      />
+                    ))}
+                  </datalist>
+                </>
+              ) : field.type === "checkbox" ? (
+                <input
+                  type="checkbox"
+                  checked={!!form[field.key]}
+                  onChange={(e) => onChange(field.key, e.target.checked)}
+                />
+              ) : field.type === "select" ? (
+                <select
+                  value={form[field.key] ?? ""}
+                  required={!!field.required}
+                  onChange={(e) => onChange(field.key, e.target.value)}
+                >
+                  <option value="">{field.placeholder || "Select option"}</option>
+                  {form[field.key] && !(field.options || []).some((option) =>
+                    (typeof option === "string" ? option : option.value) === form[field.key]
+                  ) && <option value={form[field.key]}>Current page: {form[field.key]}</option>}
+                  {(field.options || []).map((option) => {
+                    const optionValue = typeof option === "string" ? option : option.value;
+                    const optionLabel = typeof option === "string" ? option : option.label;
+                    return (
+                      <option key={optionValue} value={optionValue}>
+                        {optionLabel}
+                      </option>
+                    );
+                  })}
+                </select>
+              ) : field.type === "file" ? (
+                <input
+                  type="file"
+                  style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.5rem' }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    onChange(field.key, file);
+                  }}
+                />
+              ) : (
+                <input
+                  type={field.type}
+                  value={form[field.key] ?? ""}
+                  placeholder={field.placeholder || ""}
+                  required={!!field.required}
+                  onChange={(e) => onChange(field.key, e.target.value)}
+                />
+              )}
+              {field.type === "file" && form[field.key] && (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
+                  Selected: {form[field.key] instanceof File ? form[field.key].name : form[field.key]}
+                </div>
+              )}
+            </label>
+          );
+        })}
         <div className="adm-form-actions">
           <button type="submit" className="adm-btn">{createMode ? "Create" : "Update"}</button>
           {!createMode && (
@@ -407,7 +656,9 @@ function ResourcePanel({
             {visibleRows.map((row, rowIndex) => (
               <tr key={String((row && row[cfg.idKey]) || `${section}-${rowIndex}`)}>
                 {cfg.columns.map((col) => (
-                  <td key={col}>{displayValue(row ? row[col] : null)}</td>
+                  <td key={col}>
+                    {displayValue(section === "content" && col === "content" ? richTextToPlainText(row?.[col]) : row?.[col])}
+                  </td>
                 ))}
                 <td>
                   <div className="adm-actions">
@@ -429,7 +680,11 @@ function ResourcePanel({
             {visibleRows.length === 0 && (
               <tr>
                 <td colSpan={cfg.columns.length + 1} className="adm-empty">
+<<<<<<< HEAD
                   {section === "students" && (studentSearch || studentLevel) ? "No students match your search." : "No records yet."}
+=======
+                  {section === "content" && rows.length > 0 ? "No content matches these filters." : "No records yet."}
+>>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
                 </td>
               </tr>
             )}
@@ -648,8 +903,8 @@ function SiteSettingsPanel({
   return (
     <div className="adm-panel">
       <div className="adm-panel-head">
-        <h3>Site Settings</h3>
-        <p>Connected to `/site/settings` for frontend configuration values.</p>
+        <h3>Website identity & settings</h3>
+        <p>Manage the school branding, header color, contact details, footer text, and social links used by the website.</p>
       </div>
 
       <form className="adm-form" onSubmit={onSubmit}>
@@ -658,17 +913,23 @@ function SiteSettingsPanel({
           <input
             value={form.key}
             onChange={(event) => onChange("key", event.target.value)}
-            placeholder="e.g. school_name"
+            placeholder="Choose or enter a setting key"
+            list="adm-site-setting-keys"
             required
             disabled={isEditing}
           />
+          <datalist id="adm-site-setting-keys">
+            {WEBSITE_SETTING_KEYS.map((setting) => (
+              <option key={setting.value} value={setting.value} label={setting.label} />
+            ))}
+          </datalist>
         </label>
         <label className="adm-field adm-field-wide">
           <span>Setting value</span>
           <textarea
             value={form.value}
             onChange={(event) => onChange("value", event.target.value)}
-            placeholder="Enter the value"
+            placeholder="Enter text, a URL, a color such as #BC6C3B, or an uploaded asset path"
             required
           />
         </label>
@@ -683,6 +944,8 @@ function SiteSettingsPanel({
           )}
         </div>
       </form>
+
+      <p className="adm-help-note">For a school logo, upload the image in Uploads API and paste its path as the <code>school_logo</code> value.</p>
 
       {status && <p className="adm-status">{status}</p>}
 
@@ -742,7 +1005,7 @@ function ProfileSecurityPanel({
       </div>
 
       <div className="adm-profile-grid">
-        <form className="adm-form" onSubmit={onSaveProfile}>
+        <form className="adm-form adm-profile-form" onSubmit={onSaveProfile}>
           <h4>Profile</h4>
           <label className="adm-field"><span>Username</span><input value={form.username} onChange={(e) => setForm((s) => ({ ...s, username: e.target.value }))} required /></label>
           <label className="adm-field"><span>Email</span><input type="email" value={form.email} onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))} required /></label>
@@ -753,13 +1016,13 @@ function ProfileSecurityPanel({
         </form>
 
         <div className="adm-security-col">
-          <form className="adm-form" onSubmit={onChangePassword}>
+          <form className="adm-form adm-security-form" onSubmit={onChangePassword}>
             <h4>Password</h4>
             <label className="adm-field"><span>New password</span><input type="password" minLength={8} value={pwd.new_password} onChange={(e) => setPwd((s) => ({ ...s, new_password: e.target.value }))} required /></label>
             <button className="adm-btn" type="submit">Update Password</button>
           </form>
 
-          <form className="adm-form" onSubmit={onUploadImage}>
+          <form className="adm-form adm-security-form" onSubmit={onUploadImage}>
             <h4>Profile image</h4>
             <label className="adm-field"><span>Upload image</span><input type="file" accept="image/*" name="image" required /></label>
             <button className="adm-btn adm-btn-light" type="submit">Upload</button>
@@ -779,36 +1042,13 @@ function ProfileSecurityPanel({
   );
 }
 
-function TimetablePanel() {
-  const { token } = useAuth();
-  const configuredTimetableUrl = String(import.meta.env.VITE_TIMETABLE_APP_URL || "").replace(/\/+$/, "");
-  const timetableSrc = `${configuredTimetableUrl}/?token=${encodeURIComponent(token || "")}&_t=${Date.now()}`;
-
-
-  return (
-    <div className="adm-panel" style={{ width: "100%", height: "calc(100vh - 64px)", overflow: "hidden", padding: 0 }}>
-      <iframe
-        src={timetableSrc}
-        style={{
-          width: "100%",
-          height: "100%",
-          border: "none",
-          display: "block",
-        }}
-        title="Timetable Management"
-        allow="clipboard-read; clipboard-write"
-        referrerPolicy="strict-origin-when-cross-origin"
-      />
-    </div>
-  );
-}
-
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const { user, logout, refreshMe } = useAuth();
   const [active, setActive] = useState("overview");
   const [rows, setRows] = useState({
     uploads: [],
+    gallery: [],
     events: [],
     announcements: [],
     content: [],
@@ -825,6 +1065,7 @@ export default function AdminDashboard() {
   const [forms, setForms] = useState({
     events: emptyFormFor("events"),
     announcements: emptyFormFor("announcements"),
+    gallery: emptyFormFor("gallery"),
     content: emptyFormFor("content"),
     students: emptyFormFor("students"),
     staff: emptyFormFor("staff"),
@@ -838,6 +1079,7 @@ export default function AdminDashboard() {
   const [editing, setEditing] = useState({
     events: null,
     announcements: null,
+    gallery: null,
     content: null,
     students: null,
     staff: null,
@@ -856,25 +1098,73 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState("");
+  const [navQuery, setNavQuery] = useState("");
 
   const stats = useMemo(
     () => [
-      { label: "Uploads", value: rows.uploads.length },
-      { label: "Events", value: rows.events.length },
-      { label: "Announcements", value: rows.announcements.length },
-      { label: "Content", value: rows.content.length },
-      { label: "Students", value: rows.students.length },
-      { label: "School Workers", value: rows.schoolWorkers.length },
-      { label: "Staff", value: rows.staff.length },
-      { label: "Departments", value: rows.departments.length },
-      { label: "Navigation", value: rows.navigation.length },
-      { label: "Site Settings", value: siteSettings.length },
-      { label: "Timetables", value: rows.timetables.length },
-      { label: "Messages", value: rows.messages.length },
-      { label: "Users", value: rows.users.length },
+      { label: "Uploads", value: rows.uploads.length, icon: "bi-cloud-arrow-up", section: "uploads" },
+      { label: "Gallery", value: rows.gallery.length, icon: "bi-images", section: "gallery" },
+      { label: "Events", value: rows.events.length, icon: "bi-calendar-event", section: "events" },
+      { label: "Announcements", value: rows.announcements.length, icon: "bi-megaphone", section: "announcements" },
+      { label: "Website Content", value: rows.content.length, icon: "bi-file-earmark-text", section: "content" },
+      { label: "Students", value: rows.students.length, icon: "bi-mortarboard", section: "students" },
+      { label: "School Workers", value: rows.schoolWorkers.length, icon: "bi-person-badge", section: "schoolWorkers" },
+      { label: "Staff", value: rows.staff.length, icon: "bi-people", section: "staff" },
+      { label: "Departments", value: rows.departments.length, icon: "bi-diagram-3", section: "departments" },
+      { label: "Navigation", value: rows.navigation.length, icon: "bi-menu-button-wide", section: "navigation" },
+      { label: "Site Settings", value: siteSettings.length, icon: "bi-sliders", section: "siteSettings" },
+      { label: "Timetables", value: rows.timetables.length, icon: "bi-calendar3", section: "timetables" },
+      { label: "Messages", value: rows.messages.length, icon: "bi-chat-left-text", section: "messages" },
+      { label: "Users", value: rows.users.length, icon: "bi-shield-lock", section: "users" },
     ],
     [rows, siteSettings]
   );
+
+  const recentActivity = useMemo(() => getDashboardActivity(rows), [rows]);
+  const activityDays = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - 6 + index);
+      const count = recentActivity.filter((entry) => {
+        const entryDate = new Date(entry.date);
+        entryDate.setHours(0, 0, 0, 0);
+        return entryDate.getTime() === date.getTime();
+      }).length;
+      return {
+        date,
+        count,
+        label: date.toLocaleDateString(undefined, { weekday: "short" }),
+      };
+    });
+  }, [recentActivity]);
+
+  const chartMaximum = Math.max(1, ...activityDays.map((day) => day.count));
+  const chartPoints = activityDays.map((day, index) => ({
+    x: 18 + index * 44,
+    y: 95 - (day.count / chartMaximum) * 64,
+  }));
+  const chartLine = chartPoints.map((point) => `${point.x},${point.y}`).join(" ");
+  const chartArea = chartPoints.length
+    ? `${chartLine} 282,100 18,100`
+    : "";
+  const messagesToReview = rows.messages.filter((message) => {
+    const messageStatus = String(message.status || "new").toLowerCase();
+    return messageStatus !== "read" && messageStatus !== "archived";
+  }).length;
+  const draftTimetables = rows.timetables.filter((timetable) => String(timetable.status || "").toLowerCase() === "draft").length;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const adminName = user?.full_name?.trim()?.split(/\s+/)[0] || user?.username || "Admin";
+  const navGroups = [
+    { label: "OVERVIEW", items: SIDEBAR_ITEMS.filter((item) => item.id === "overview") },
+    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "gallery", "events", "announcements", "content", "students", "results", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
+    { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users"].includes(item.id)) },
+  ].map((group) => ({
+    ...group,
+    items: group.items.filter((item) => item.label.toLowerCase().includes(navQuery.trim().toLowerCase())),
+  })).filter((group) => group.items.length > 0);
 
   const syncProfileForm = (u) => {
     setProfileForm({
@@ -920,6 +1210,7 @@ export default function AdminDashboard() {
       // Load remaining data in background
       const remainingData = await Promise.all([
         api.get("/content").catch(() => ({ data: [] })),
+        api.get("/gallery").catch(() => ({ data: [] })),
         api.get("/departments").catch(() => ({ data: [] })),
         api.get("/navigation").catch(() => ({ data: [] })),
         api.get("/site/settings").catch(() => ({ data: {} })),
@@ -933,15 +1224,16 @@ export default function AdminDashboard() {
       setRows(prev => ({
         ...prev,
         content: remainingData[0].data || [],
-        departments: remainingData[1].data || [],
-        navigation: remainingData[2].data || [],
-        contactInfo: remainingData[4].data || [],
-        users: remainingData[5].data || [],
-        messages: remainingData[6].data || [],
-        timetables: remainingData[7].data || [],
-        schoolWorkers: remainingData[8].data || [],
+        gallery: remainingData[1].data || [],
+        departments: remainingData[2].data || [],
+        navigation: remainingData[3].data || [],
+        contactInfo: remainingData[5].data || [],
+        users: remainingData[6].data || [],
+        messages: remainingData[7].data || [],
+        timetables: remainingData[8].data || [],
+        schoolWorkers: remainingData[9].data || [],
       }));
-      setSiteSettings(mapSiteSettingsRows(remainingData[3].data || {}));
+      setSiteSettings(mapSiteSettingsRows(remainingData[4].data || {}));
     } catch (error) {
       setStatus(getApiError(error, "Failed to load dashboard data"));
     } finally {
@@ -1019,6 +1311,9 @@ export default function AdminDashboard() {
       const uploaded = await uploadFile(file);
       if (uploaded?.path) {
         setSectionField(section, fieldKey, uploaded.path);
+        if (section === "gallery") {
+          setSectionField(section, "media_type", file.type.startsWith("video/") ? "video" : "image");
+        }
         setStatus(`Uploaded: ${uploaded.path}`);
       }
     } catch (error) {
@@ -1265,14 +1560,170 @@ export default function AdminDashboard() {
   let content = null;
   if (active === "overview") {
     content = (
-      <div className="adm-overview">
-        <div className="adm-grid">
-          {stats.map((item) => (
-            <div key={item.label} className="adm-stat-card">
-              <p>{item.label}</p>
-              <h3>{item.value}</h3>
+      <div className="adm-overview adm-dashboard">
+        <section className="adm-dashboard-welcome">
+          <div className="adm-welcome-copy">
+            <span className="adm-dashboard-eyebrow"><i className="bi bi-stars"></i> SCHOOL ADMINISTRATION</span>
+            <h2>{greeting}, {adminName}</h2>
+            <p>Here's what's happening across Lycee De Muhura today.</p>
+            <div className="adm-welcome-actions">
+              <button type="button" className="adm-welcome-primary" onClick={() => { setActive("events"); setStatus(""); }}>
+                <i className="bi bi-plus-lg"></i> Create an event
+              </button>
+              <button type="button" className="adm-welcome-secondary" onClick={() => { setActive("announcements"); setStatus(""); }}>
+                <i className="bi bi-megaphone"></i> New announcement
+              </button>
             </div>
-          ))}
+          </div>
+
+          <div className="adm-highlight-grid">
+            <div className="adm-highlight-card">
+              <span className="adm-highlight-icon adm-highlight-icon-gold"><i className="bi bi-mortarboard"></i></span>
+              <span className="adm-highlight-label">STUDENTS</span>
+              <strong>{rows.students.length}</strong>
+              <small>Student records</small>
+            </div>
+            <div className="adm-highlight-card">
+              <span className="adm-highlight-icon adm-highlight-icon-blue"><i className="bi bi-calendar-event"></i></span>
+              <span className="adm-highlight-label">EVENTS</span>
+              <strong>{rows.events.length}</strong>
+              <small>School events</small>
+            </div>
+            <div className="adm-highlight-card">
+              <span className="adm-highlight-icon adm-highlight-icon-orange"><i className="bi bi-chat-left-text"></i></span>
+              <span className="adm-highlight-label">TO REVIEW</span>
+              <strong>{messagesToReview}</strong>
+              <small>Client messages</small>
+            </div>
+          </div>
+        </section>
+
+        <section className="adm-dashboard-section adm-overview-metrics">
+          <div className="adm-dashboard-section-heading">
+            <div>
+              <span className="adm-section-kicker">AT A GLANCE</span>
+              <h3>School overview</h3>
+            </div>
+            <span className="adm-live-label"><i className="bi bi-arrow-repeat"></i> Live data</span>
+          </div>
+          <div className="adm-grid">
+            {stats.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                className="adm-stat-card"
+                onClick={() => { setActive(item.section); setStatus(""); }}
+                aria-label={`Open ${item.label}`}
+              >
+                <span className="adm-stat-icon"><i className={`bi ${item.icon}`}></i></span>
+                <span className="adm-stat-label">{item.label}</span>
+                <strong>{item.value}</strong>
+                <span className="adm-stat-link">View records <i className="bi bi-arrow-up-right"></i></span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <div className="adm-dashboard-lower">
+          <section className="adm-dashboard-panel adm-recent-panel">
+            <div className="adm-dashboard-section-heading">
+              <div>
+                <span className="adm-section-kicker">LATEST UPDATES</span>
+                <h3>Recent activity</h3>
+              </div>
+              <span className="adm-panel-count">{Math.min(recentActivity.length, 5)}</span>
+            </div>
+            {recentActivity.length > 0 ? (
+              <div className="adm-recent-list">
+                {recentActivity.slice(0, 5).map((entry, index) => (
+                  <button
+                    type="button"
+                    className="adm-dashboard-record"
+                    key={`${entry.section}-${entry.date.toISOString()}-${index}`}
+                    onClick={() => { setActive(entry.section); setStatus(""); }}
+                  >
+                    <span className="adm-record-icon"><i className={`bi ${entry.icon}`}></i></span>
+                    <span className="adm-record-copy">
+                      <strong>{entry.title}</strong>
+                      <span>{entry.label}</span>
+                    </span>
+                    <time dateTime={entry.date.toISOString()}>{entry.date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time>
+                    <i className="bi bi-chevron-right adm-record-chevron"></i>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="adm-dashboard-empty">
+                <span className="adm-empty-icon"><i className="bi bi-clock-history"></i></span>
+                <strong>No dated updates yet</strong>
+                <p>New records with creation dates will appear here.</p>
+              </div>
+            )}
+          </section>
+
+          <section className="adm-dashboard-panel adm-activity-panel">
+            <div className="adm-dashboard-section-heading">
+              <div>
+                <span className="adm-section-kicker">RECORDS OVER TIME</span>
+                <h3>School activity</h3>
+              </div>
+              <span className="adm-chart-period">Last 7 days</span>
+            </div>
+            <div className="adm-activity-chart">
+              <div className="adm-chart-summary">
+                <strong>{activityDays.reduce((total, day) => total + day.count, 0)}</strong>
+                <span>records this week</span>
+              </div>
+              <svg className="adm-chart-svg" viewBox="0 0 300 112" role="img" aria-label="School records added during the last seven days">
+                <defs>
+                  <linearGradient id="adm-activity-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#ef9b32" stopOpacity="0.24" />
+                    <stop offset="100%" stopColor="#ef9b32" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {[30, 62, 94].map((y) => <line key={y} x1="16" x2="284" y1={y} y2={y} className="adm-chart-gridline" />)}
+                <polygon points={chartArea} className="adm-chart-area" />
+                <polyline points={chartLine} className="adm-chart-line" />
+                {chartPoints.map((point, index) => (
+                  <circle key={activityDays[index].date.toISOString()} cx={point.x} cy={point.y} r="3.5" className="adm-chart-point" />
+                ))}
+              </svg>
+              <div className="adm-chart-labels">
+                {activityDays.map((day) => <span key={day.date.toISOString()}>{day.label}</span>)}
+              </div>
+            </div>
+            <p className="adm-chart-note">Based on dated uploads, events, announcements, content, student, message and timetable records.</p>
+          </section>
+
+          <section className="adm-dashboard-panel adm-attention-panel">
+            <div className="adm-dashboard-section-heading">
+              <div>
+                <span className="adm-section-kicker">YOUR WORKSPACE</span>
+                <h3>Needs attention</h3>
+              </div>
+              <span className="adm-attention-spark"><i className="bi bi-sparkle"></i></span>
+            </div>
+            <div className="adm-attention-list">
+              <button type="button" className="adm-attention-item" onClick={() => { setActive("messages"); setStatus(""); }}>
+                <span className="adm-attention-icon adm-attention-icon-orange"><i className="bi bi-chat-left-text"></i></span>
+                <span className="adm-attention-copy"><strong>Client messages</strong><small>Not yet reviewed</small></span>
+                <span className="adm-attention-value">{messagesToReview}</span>
+                <i className="bi bi-chevron-right adm-record-chevron"></i>
+              </button>
+              <button type="button" className="adm-attention-item" onClick={() => { setActive("timetables"); setStatus(""); }}>
+                <span className="adm-attention-icon adm-attention-icon-blue"><i className="bi bi-calendar3"></i></span>
+                <span className="adm-attention-copy"><strong>Timetable drafts</strong><small>Not yet published</small></span>
+                <span className="adm-attention-value">{draftTimetables}</span>
+                <i className="bi bi-chevron-right adm-record-chevron"></i>
+              </button>
+            </div>
+            {messagesToReview === 0 && draftTimetables === 0 && (
+              <p className="adm-all-caught-up"><i className="bi bi-check-circle-fill"></i> You are all caught up.</p>
+            )}
+            <button type="button" className="adm-attention-link" onClick={() => { setActive("messages"); setStatus(""); }}>
+              Open message inbox <i className="bi bi-arrow-right"></i>
+            </button>
+          </section>
         </div>
         {status && <p className="adm-status">{status}</p>}
       </div>
@@ -1310,8 +1761,6 @@ export default function AdminDashboard() {
     );
   } else if (active === "contactInfo") {
     content = <ContactInfoPanel contactInfo={rows.contactInfo} onSave={saveContactInfo} status={status} />;
-  } else if (active === "timetables") {
-    content = <TimetablePanel />;
   } else if (active === "profile") {
     content = (
       <ProfileSecurityPanel
@@ -1357,26 +1806,50 @@ export default function AdminDashboard() {
         </div>
 
         <nav className="adm-nav">
-          {SIDEBAR_ITEMS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`adm-nav-item ${active === item.id ? "active" : ""}`}
-              onClick={() => {
-                setActive(item.id);
-                setStatus("");
-              }}
-            >
-              <i className={`bi ${item.icon}`}></i>
-              <span>{item.label}</span>
-            </button>
+          {navGroups.map((group) => (
+            <div className="adm-nav-group" key={group.label}>
+              <span className="adm-nav-group-label">{group.label}</span>
+              {group.items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  title={item.label}
+                  aria-label={item.label}
+                  className={`adm-nav-item ${active === item.id ? "active" : ""}`}
+                  onClick={() => {
+                    setActive(item.id);
+                    setStatus("");
+                  }}
+                >
+                  <i className={`bi ${item.icon}`}></i>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
           ))}
+          {navGroups.length === 0 && <p className="adm-nav-empty">No matching sections</p>}
         </nav>
       </aside>
 
       <main className="adm-main">
         <div className="adm-main-head">
           <h1>{active === "profile" ? "Admin Profile & Security" : SIDEBAR_ITEMS.find((item) => item.id === active)?.label || "Dashboard"}</h1>
+          <label className="adm-header-search">
+            <i className="bi bi-search"></i>
+            <input
+              type="search"
+              aria-label="Search dashboard sections"
+              placeholder="Search sections..."
+              value={navQuery}
+              onChange={(event) => setNavQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && navGroups[0]?.items[0]) {
+                  setActive(navGroups[0].items[0].id);
+                  setStatus("");
+                }
+              }}
+            />
+          </label>
           <div className="adm-head-right">
             <button className="adm-btn adm-btn-light" onClick={() => setActive("profile")}>My Profile</button>
             <button className="adm-btn adm-btn-light" onClick={loadEverything} disabled={loading}>
