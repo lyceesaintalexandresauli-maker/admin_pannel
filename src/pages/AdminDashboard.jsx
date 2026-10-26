@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL, api, getApiError, mediaUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-<<<<<<< HEAD
-=======
 import RichTextEditor from "../components/RichTextEditor";
 import { richTextToPlainText } from "../utils/richText";
->>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
 import StudentResultsManager from "./StudentResultsManager";
+import SeverainAdminAssistant from "./SeverainAdminAssistant";
 import { STUDENT_LEVELS } from "../constants/studentLevels";
 import "../styles/admin.css";
 
@@ -29,6 +27,7 @@ const SIDEBAR_ITEMS = [
   { id: "contactInfo", label: "Contact Info API", icon: "bi-telephone" },
   { id: "messages", label: "Client Messages API", icon: "bi-inbox" },
   { id: "users", label: "Users API", icon: "bi-shield-lock" },
+  { id: "aiChat", label: "Severain AI", icon: "bi-stars" },
 ];
 
 const WEBSITE_CONTENT_PAGES = [
@@ -337,19 +336,12 @@ function ResourcePanel({
   onCancelEdit,
   onResetPassword,
   onUploadAndAssign,
+  onOpenAssistant,
   status,
 }) {
   const cfg = RESOURCE_CONFIG[section];
   const [studentSearch, setStudentSearch] = useState("");
   const [studentLevel, setStudentLevel] = useState("");
-  const visibleRows = section === "students"
-    ? rows.filter((row) => {
-        const query = studentSearch.trim().toLowerCase();
-        const searchable = [row.student_code, row.first_name, row.last_name, row.class_level, row.department, row.email]
-          .filter(Boolean).join(" ").toLowerCase();
-        return (!query || searchable.includes(query)) && (!studentLevel || row.class_level === studentLevel);
-      })
-    : rows;
   const createMode = editingId === null;
   const [contentPageFilter, setContentPageFilter] = useState("all");
   const [contentSearch, setContentSearch] = useState("");
@@ -357,16 +349,23 @@ function ResourcePanel({
     ...WEBSITE_CONTENT_PAGES.map((page) => page.value),
     ...rows.map((row) => String(row?.page || "").trim()).filter(Boolean),
   ]));
-  const visibleRows = section !== "content"
-    ? rows
-    : rows.filter((row) => {
+  const visibleRows = section === "students"
+    ? rows.filter((row) => {
+      const query = studentSearch.trim().toLowerCase();
+      const searchable = [row.student_code, row.first_name, row.last_name, row.class_level, row.department, row.email]
+        .filter(Boolean).join(" ").toLowerCase();
+      return (!query || searchable.includes(query)) && (!studentLevel || row.class_level === studentLevel);
+    })
+    : section === "content"
+      ? rows.filter((row) => {
       const matchesPage = contentPageFilter === "all" || row.page === contentPageFilter;
       const searchText = [row.page, row.section, row.title, row.content, row.image_path]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
       return matchesPage && searchText.includes(contentSearch.trim().toLowerCase());
-    });
+      })
+      : rows;
   const fields = cfg.fields
     .filter((f) => {
       if (createMode && f.editOnly) return false;
@@ -382,11 +381,8 @@ function ResourcePanel({
   const pathFields = cfg.fields.filter((f) => f.key.endsWith("_path"));
   const [targetField, setTargetField] = useState(pathFields[0]?.key || "");
   const pickerMeta = getPickerMeta(targetField);
-<<<<<<< HEAD
-=======
   const targetIsImage = targetField.toLowerCase().includes("image") || (section === "gallery" && form.media_type === "image");
 
->>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
   useEffect(() => {
     setTargetField(pathFields[0]?.key || "");
   }, [section]);
@@ -394,7 +390,10 @@ function ResourcePanel({
   return (
     <div className="adm-panel">
       <div className="adm-panel-head">
-        <h3>{cfg.title}</h3>
+        <div>
+          <h3>{cfg.title}</h3>
+          {section === "students" && <button className="adm-btn adm-btn-light" onClick={onOpenAssistant} type="button">Ask Severain AI about student workflows</button>}
+        </div>
         <p>{section === "content" ? "Edit page copy and media. Add one row per section; use hero for the banner and seo for the search description." : `Connected to ${cfg.endpoint}`}</p>
       </div>
 
@@ -468,57 +467,6 @@ function ResourcePanel({
       )}
 
       <form className="adm-form" onSubmit={onSubmit}>
-<<<<<<< HEAD
-        {fields.map((field) => (
-          <label key={field.key} className={field.type === "textarea" ? "adm-field adm-field-wide" : "adm-field"}>
-            <span>{field.label}</span>
-            {field.type === "textarea" ? (
-              <textarea
-                value={form[field.key] ?? ""}
-                required={!!field.required}
-                onChange={(e) => onChange(field.key, e.target.value)}
-              />
-            ) : field.type === "checkbox" ? (
-              <input
-                type="checkbox"
-                checked={!!form[field.key]}
-                onChange={(e) => onChange(field.key, e.target.checked)}
-              />
-            ) : field.type === "select" ? (
-              <select
-                value={form[field.key] ?? ""}
-                required={!!field.required}
-                onChange={(e) => onChange(field.key, e.target.value)}
-              >
-                <option value="">Select option</option>
-                {[...(form[field.key] && !(field.options || []).includes(form[field.key]) ? [form[field.key]] : []), ...(field.options || [])].map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : field.type === "file" ? (
-              <input
-                type="file"
-                accept={field.accept || getPickerMeta(field.key).accept}
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.5rem' }}
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  onChange(field.key, file);
-                }}
-              />
-            ) : (
-              <input
-                type={field.type}
-                value={form[field.key] ?? ""}
-                required={!!field.required}
-                onChange={(e) => onChange(field.key, e.target.value)}
-              />
-            )}
-            {field.type === "file" && form[field.key] && (
-              <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#666' }}>
-                Selected: {form[field.key] instanceof File ? form[field.key].name : form[field.key]}
-=======
         {fields.map((field) => {
           const fieldClass = field.type === "textarea" || (section === "content" && field.key === "content")
             ? "adm-field adm-field-wide"
@@ -534,7 +482,6 @@ function ResourcePanel({
                   required={!!field.required}
                   onChange={(value) => onChange(field.key, value)}
                 />
->>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
               </div>
             );
           }
@@ -686,11 +633,11 @@ function ResourcePanel({
             {visibleRows.length === 0 && (
               <tr>
                 <td colSpan={cfg.columns.length + 1} className="adm-empty">
-<<<<<<< HEAD
-                  {section === "students" && (studentSearch || studentLevel) ? "No students match your search." : "No records yet."}
-=======
-                  {section === "content" && rows.length > 0 ? "No content matches these filters." : "No records yet."}
->>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
+                  {section === "students" && (studentSearch || studentLevel)
+                    ? "No students match your search."
+                    : section === "content" && rows.length > 0
+                      ? "No content matches these filters."
+                      : "No records yet."}
                 </td>
               </tr>
             )}
@@ -1166,7 +1113,7 @@ export default function AdminDashboard() {
   const navGroups = [
     { label: "OVERVIEW", items: SIDEBAR_ITEMS.filter((item) => item.id === "overview") },
     { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "gallery", "events", "announcements", "content", "students", "results", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
-    { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users"].includes(item.id)) },
+    { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users", "aiChat"].includes(item.id)) },
   ].map((group) => ({
     ...group,
     items: group.items.filter((item) => item.label.toLowerCase().includes(navQuery.trim().toLowerCase())),
@@ -1747,7 +1694,9 @@ export default function AdminDashboard() {
       />
     );
   } else if (active === "results") {
-    content = <StudentResultsManager />;
+    content = <StudentResultsManager onOpenAssistant={() => setActive("aiChat")} />;
+  } else if (active === "aiChat") {
+    content = <SeverainAdminAssistant />;
   } else if (active === "messages") {
     content = <MessagesPanel messages={rows.messages} onUpdateStatus={updateMessageStatus} onDelete={deleteMessage} status={status} />;
   } else if (active === "siteSettings") {
@@ -1796,6 +1745,7 @@ export default function AdminDashboard() {
         onCancelEdit={() => resetSectionForm(active)}
         onResetPassword={resetUserPassword}
         onUploadAndAssign={(file, fieldKey) => uploadAndAssign(active, file, fieldKey)}
+        onOpenAssistant={() => setActive("aiChat")}
         status={status}
       />
     );

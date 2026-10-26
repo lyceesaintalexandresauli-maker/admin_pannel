@@ -10,6 +10,14 @@ A React-based admin panel for managing school operations, integrated with Supaba
 - **HTTP Client**: Axios
 - **Styling**: Custom CSS
 
+## Severain AI in the Admin Panel
+
+The dashboard includes a Severain AI assistant for general guidance on the Student API and Student Results workflows. It does not receive school records or have the ability to change them; administrators continue to use the authenticated admin forms for all student and result actions.
+
+Configure `VITE_SEVERAIN_AI_SUPABASE_URL` and `VITE_SEVERAIN_AI_SUPABASE_ANON_KEY` using the project URL and anon/public key for the Severain AI Supabase project. These Vite variables are embedded in the frontend build, so only use the public anon key, never a service-role key. Rebuild the admin panel after changing these values.
+
+Chat prompts and their short in-memory conversation history are sent to the Severain AI chat function. Do not enter student names, IDs, codes, contact details, marks, or other student-specific information.
+
 ## Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
@@ -89,6 +97,8 @@ Run `migrations/2026-10-20_student_results.sql` in the backend project against a
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_PROJECT_REF`
    - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_SEVERAIN_AI_SUPABASE_URL`
+   - `VITE_SEVERAIN_AI_SUPABASE_ANON_KEY`
    - `VITE_API_BASE_URL`
    - `VITE_ASSETS_BASE_URL`
    - `VITE_CADEAU_URL`

@@ -44,10 +44,8 @@ function App() {
       <Route path="/panel-login" element={<LoginPanel />} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
-<<<<<<< HEAD
-=======
       <Route path="/teacher-results" element={<ProtectedRoute requireTeacher><TeacherResultsPage /></ProtectedRoute>} />
->>>>>>> a8bf82e9d4900d7edb5293935f49f658af2cce38
+       <Route path="/teacher-results" element={<ProtectedRoute requireTeacher><TeacherResultsPage /></ProtectedRoute>} />
     </Routes>
   );
 }
