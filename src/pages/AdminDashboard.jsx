@@ -1151,11 +1151,6 @@ export default function AdminDashboard() {
         api.get("/events").catch(() => ({ data: [] })),
         api.get("/announcements").catch(() => ({ data: [] })),
         api.get("/staff").catch(() => ({ data: [] })),
-        api.get("/students").catch((error) => {
-          console.error("[students load error]", error);
-          setStatus(`Students could not be loaded: ${getApiError(error, "API unavailable")}`);
-          return { data: [] };
-        }),
         api.get("/auth/me").catch(() => ({ data: user })),
       ]);
 
@@ -1165,13 +1160,18 @@ export default function AdminDashboard() {
         events: criticalData[1].data || [],
         announcements: criticalData[2].data || [],
         staff: criticalData[3].data || [],
-        students: criticalData[4].data || [],
       }));
-      syncProfileForm(criticalData[5].data || user);
+      syncProfileForm(criticalData[4].data || user);
       
       setLoading(false); // Show UI with initial data
       
       // Load remaining data in background
+      api.get("/students").then(({ data }) => {
+        setRows((prev) => ({ ...prev, students: data || [] }));
+      }).catch((error) => {
+        console.error("[students load error]", error);
+        setStatus(`Students could not be loaded: ${getApiError(error, "API unavailable")}`);
+      });
       const remainingData = await Promise.all([
         api.get("/content").catch(() => ({ data: [] })),
         api.get("/gallery").catch(() => ({ data: [] })),
@@ -1795,6 +1795,13 @@ export default function AdminDashboard() {
               ))}
             </div>
           ))}
+          <div className="adm-nav-group">
+            <span className="adm-nav-group-label">SCHOOL OPERATIONS</span>
+            <button className="adm-nav-item" type="button" onClick={() => navigate("/meetings")}>
+              <i className="bi bi-calendar2-week"></i>
+              <span>Parent &amp; Staff Meetings</span>
+            </button>
+          </div>
           {navGroups.length === 0 && <p className="adm-nav-empty">No matching sections</p>}
         </nav>
       </aside>

@@ -37,6 +37,7 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 # Backend API Configuration
 VITE_API_BASE_URL=https://your-backend-api.onrender.com
 VITE_ASSETS_BASE_URL=https://your-backend-api.onrender.com
+VITE_SMART_MANAGEMENT_API_BASE_URL=https://your-smart-management-service.onrender.com
 
 # Cadeau AI Service
 VITE_CADEAU_URL=https://your-cadeau-service.com
@@ -75,6 +76,12 @@ The built files will be in the `dist` directory.
 Administrators can open **Student Results** in the dashboard to add or edit subject marks for an existing student, program, academic year, and term. Results remain drafts until **Publish these results for parents** is selected. Parents access published results from the public website's **Student Results** page after creating an account or signing in.
 
 Run `migrations/2026-10-20_student_results.sql` in the backend project against an existing database before deploying these changes.
+
+## Smart Management and meetings
+
+The React admin panel includes a meetings workspace backed by the Smart Management Flask service. Set `VITE_SMART_MANAGEMENT_API_BASE_URL` to that service's public base URL. On the Flask service, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the same Supabase project configured for this React app, and set `ADMIN_PANEL_ORIGINS` to the exact deployed admin-panel origin(s).
+
+The Flask service verifies each Supabase bearer token with Supabase Auth, then finds an active Smart Management account with the same confirmed email. Meeting roles, guardian relationships, class scope, and record permissions continue to come from Smart Management's database. Accounts need matching emails in both systems. The React workspace includes meeting scheduling, parent requests, invitations, attendance, agendas, minutes and approvals, action tracking, reports, guardian links, room reservations, Teams links, policy settings, and the audit trail.
 
 ## Deployment to Render
 
