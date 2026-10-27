@@ -388,7 +388,7 @@ function ResourcePanel({
   }, [section]);
 
   return (
-    <div className="adm-panel">
+    <div className={`adm-panel adm-resource-panel adm-resource-panel-${section}`}>
       <div className="adm-panel-head">
         <div>
           <h3>{cfg.title}</h3>
@@ -462,7 +462,7 @@ function ResourcePanel({
 
       {section === "students" && (
         <p className="adm-status" aria-live="polite">
-          Add a student with only the Student ID, first name, last name, and Level. The level identifies the course and section, including L4SWDA/L4SWDB and L4NITA/L4NITB.
+          Use the form below to add a student. To remove one, use the Delete student action in that student's row. Enter the Student ID, first name, last name, and Level. The level identifies the course and section, including L4SWDA/L4SWDB and L4NITA/L4NITB.
         </p>
       )}
 
@@ -569,7 +569,9 @@ function ResourcePanel({
           );
         })}
         <div className="adm-form-actions">
-          <button type="submit" className="adm-btn">{createMode ? "Create" : "Update"}</button>
+          <button type="submit" className="adm-btn">
+            {section === "students" ? (createMode ? "Add student" : "Update student") : (createMode ? "Create" : "Update")}
+          </button>
           {!createMode && (
             <button type="button" className="adm-btn adm-btn-light" onClick={onCancelEdit}>
               Cancel Edit
@@ -623,8 +625,13 @@ function ResourcePanel({
                         Reset Password
                       </button>
                     )}
-                    <button type="button" className="adm-btn adm-btn-danger" onClick={() => onDelete(row[cfg.idKey])}>
-                      Delete
+                    <button
+                      type="button"
+                      className="adm-btn adm-btn-danger"
+                      aria-label={section === "students" ? `Delete student ${row.student_code}` : undefined}
+                      onClick={() => onDelete(row[cfg.idKey])}
+                    >
+                      {section === "students" ? "Delete student" : "Delete"}
                     </button>
                   </div>
                 </td>
@@ -1144,7 +1151,11 @@ export default function AdminDashboard() {
         api.get("/events").catch(() => ({ data: [] })),
         api.get("/announcements").catch(() => ({ data: [] })),
         api.get("/staff").catch(() => ({ data: [] })),
-        api.get("/students").catch(() => ({ data: [] })),
+        api.get("/students").catch((error) => {
+          console.error("[students load error]", error);
+          setStatus(`Students could not be loaded: ${getApiError(error, "API unavailable")}`);
+          return { data: [] };
+        }),
         api.get("/auth/me").catch(() => ({ data: user })),
       ]);
 

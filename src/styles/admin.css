@@ -694,6 +694,14 @@
   flex-wrap: wrap;
 }
 
+.adm-resource-panel-students .adm-table th:last-child,
+.adm-resource-panel-students .adm-table td:last-child {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  box-shadow: -4px 0 6px -6px #111827;
+}
+
 .adm-empty {
   text-align: center;
   color: #6b7280;
