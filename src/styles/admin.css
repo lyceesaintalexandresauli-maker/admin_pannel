@@ -2379,6 +2379,125 @@
   .adm-results-preview-stats { flex-direction: column; }
 }
 
+.adm-results-import {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0 1.25rem;
+  padding: 1rem;
+  border: 1px solid #d8e1eb;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+}
+
+.adm-results-import-heading,
+.adm-results-import-map-heading,
+.adm-results-import-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.adm-results-import-heading h4,
+.adm-results-import-map-heading h5,
+.adm-results-import-preview h5 {
+  margin: 0;
+  color: #172b3c;
+}
+
+.adm-results-import-heading p {
+  margin: 0.3rem 0 0;
+  color: #667085;
+  font-size: 0.84rem;
+}
+
+.adm-results-import-privacy {
+  padding: 0.8rem 1rem;
+  border: 1px solid #f2d49a;
+  border-radius: 0.65rem;
+  background: #fff8e8;
+  color: #704b10;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.adm-results-import-actions,
+.adm-results-import-meta,
+.adm-results-import-map {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.adm-results-import-filename {
+  margin: 0;
+  color: #344054;
+  font-size: 0.84rem;
+}
+
+.adm-results-import-subjects {
+  min-width: 0;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid #d8e1eb;
+  border-radius: 0.6rem;
+}
+
+.adm-results-import-subjects legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+}
+
+.adm-results-import-subjects > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+
+.adm-results-import-subjects label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.84rem;
+}
+
+.adm-results-import-preview {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.adm-results-import-errors {
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 0.6rem;
+  background: #fff1f2;
+  color: #991b1b;
+  font-size: 0.84rem;
+}
+
+.adm-results-import-errors ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.adm-results-import-errors p {
+  margin: 0.35rem 0 0;
+}
+
+.adm-results-import .adm-table {
+  min-width: 680px;
+}
+
+@media (max-width: 620px) {
+  .adm-results-import-heading,
+  .adm-results-import-map-heading,
+  .adm-results-import-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 .adm-ai-panel {
   max-width: 980px;
 }

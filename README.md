@@ -18,6 +18,12 @@ Configure `VITE_SEVERAIN_AI_SUPABASE_URL` and `VITE_SEVERAIN_AI_SUPABASE_ANON_KE
 
 Chat prompts and their short in-memory conversation history are sent to the Severain AI chat function. Do not enter student names, IDs, codes, contact details, marks, or other student-specific information.
 
+### Importing students and results from Excel
+
+Administrators can use **Student Results → Import students and results from Excel** to upload an `.xlsx`, `.xls`, or `.csv` sheet. Use one row per student, with columns for first and last name (or a full name), program/level, and one column per subject mark. Student ID is optional; when omitted, new students receive an import-generated ID. Choose the academic year, term, and maximum mark, map the columns, review the preview, and confirm the import. New students are added through the school API, existing matching students are reused, and all imported results are saved as drafts for admin review. The import is atomic: if any row conflicts or fails validation, none of the batch is saved.
+
+The spreadsheet is parsed in the browser. The optional **Suggest columns with AI** action sends only the spreadsheet headings to the mapping service; student names and marks are not sent to Severain AI. Configure `AI_API_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` on the school backend to enable suggestions; manual column mapping still works without them. The workbook is sent to the authenticated school API only after an administrator confirms the import. Do not publish results until you have reviewed them.
+
 ## Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
