@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL, api, getApiError } from "../api/client";
 import { getLevelLabel, getProgramForLevel, STUDENT_LEVELS } from "../constants/studentLevels";
-import StudentResultsImport from "./StudentResultsImport";
 
 const normalizeLevel = (value) => String(value || "").toUpperCase().replace(/^LEVEL/, "L").replace(/[^A-Z0-9]/g, "");
 const studentMatchesLevel = (studentLevel, selectedLevel) => normalizeLevel(studentLevel) === normalizeLevel(selectedLevel);
@@ -101,7 +100,7 @@ const rankResults = (results) => {
   });
 };
 
-export default function StudentResultsManager({ isTeacher = false, onOpenAssistant }) {
+export default function StudentResultsManager({ isTeacher = false }) {
   const [students, setStudents] = useState([]);
   const [results, setResults] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -109,7 +108,6 @@ export default function StudentResultsManager({ isTeacher = false, onOpenAssista
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
-  const [showImport, setShowImport] = useState(false);
   const rankedResults = rankResults(results);
   const activeStudents = students.filter((student) => student.is_active !== false);
   const currentStudent = activeStudents.find((student) => String(student.id) === String(form.student_id));
@@ -228,13 +226,7 @@ export default function StudentResultsManager({ isTeacher = false, onOpenAssista
         <p>{isTeacher
           ? "Prepare draft results for your classes. Administrators review and publish results before parents can see them."
           : "Select a program and level, enter subject marks, and review each student's average-based position within their class, academic year, and term."}</p>
-        {!isTeacher && <button className="adm-btn adm-btn-light" onClick={onOpenAssistant} type="button">Ask Severain AI about results workflows</button>}
-        {!isTeacher && <button className="adm-btn adm-btn-light" onClick={() => setShowImport((visible) => !visible)} type="button">Import students and results from Excel</button>}
       </div>
-
-      {showImport && !isTeacher && (
-        <StudentResultsImport onClose={() => setShowImport(false)} onImported={loadData} />
-      )}
 
       <form className="adm-form adm-results-form" onSubmit={saveResult}>
         <label className="adm-field">

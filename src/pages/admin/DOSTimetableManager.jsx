@@ -19,9 +19,6 @@ export default function DOSTimetableManager() {
     status: "draft"
   });
 
-  const [cadeauSyncing, setCadeauSyncing] = useState(false);
-  const [cadeauStatus, setCadeauStatus] = useState({ classes: [], teachers: [] });
-
   useEffect(() => {
     loadTimetables();
   }, []);
@@ -36,27 +33,6 @@ export default function DOSTimetableManager() {
       setError(getApiError(err, "Failed to load timetables"));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSyncFromCadeau = async () => {
-    setCadeauSyncing(true);
-    try {
-      const response = await api.post("/timetables/sync-cadeau");
-      setCadeauStatus({
-        success: true,
-        message: `Synced ${response.data.classes_count} classes and ${response.data.teachers_count} teachers`,
-        timestamp: new Date().toISOString()
-      });
-      loadTimetables();
-    } catch (err) {
-      setCadeauStatus({
-        success: false,
-        message: getApiError(err, "Failed to sync with cadeau"),
-        timestamp: new Date().toISOString()
-      });
-    } finally {
-      setCadeauSyncing(false);
     }
   };
 
@@ -113,22 +89,7 @@ export default function DOSTimetableManager() {
 
       {error && <div className="error-message">{error}</div>}
 
-      {cadeauStatus.message && (
-        <div className={`status-message ${cadeauStatus.success ? 'success' : 'error'}`}>
-          {cadeauStatus.message}
-          <br />
-          <small>{cadeauStatus.timestamp}</small>
-        </div>
-      )}
-
       <div className="manager-actions">
-        <button
-          onClick={handleSyncFromCadeau}
-          disabled={cadeauSyncing}
-          className="btn btn-primary"
-        >
-          {cadeauSyncing ? "Syncing..." : "Sync from Cadeau AI"}
-        </button>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="btn btn-secondary"
@@ -248,7 +209,7 @@ export default function DOSTimetableManager() {
         {loading ? (
           <p>Loading timetables...</p>
         ) : timetables.length === 0 ? (
-          <p>No timetables found. Sync from Cadeau AI or create one manually.</p>
+          <p>No timetables found. Create one manually to get started.</p>
         ) : (
           <div className="timetables-grid">
             {timetables.map((tt) => (

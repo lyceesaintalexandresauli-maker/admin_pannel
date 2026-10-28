@@ -10,20 +10,6 @@ A React-based admin panel for managing school operations, integrated with Supaba
 - **HTTP Client**: Axios
 - **Styling**: Custom CSS
 
-## Severain AI in the Admin Panel
-
-The dashboard includes a Severain AI assistant for general guidance on the Student API and Student Results workflows. It does not receive school records or have the ability to change them; administrators continue to use the authenticated admin forms for all student and result actions.
-
-Configure `VITE_SEVERAIN_AI_SUPABASE_URL` and `VITE_SEVERAIN_AI_SUPABASE_ANON_KEY` using the project URL and anon/public key for the Severain AI Supabase project. These Vite variables are embedded in the frontend build, so only use the public anon key, never a service-role key. Rebuild the admin panel after changing these values.
-
-Chat prompts and their short in-memory conversation history are sent to the Severain AI chat function. Do not enter student names, IDs, codes, contact details, marks, or other student-specific information.
-
-### Importing students and results from Excel
-
-Administrators can use **Student Results → Import students and results from Excel** to upload an `.xlsx`, `.xls`, or `.csv` sheet. Use one row per student, with columns for first and last name (or a full name), program/level, and one column per subject mark. Student ID is optional; when omitted, new students receive an import-generated ID. Choose the academic year, term, and maximum mark, map the columns, review the preview, and confirm the import. New students are added through the school API, existing matching students are reused, and all imported results are saved as drafts for admin review. The import is atomic: if any row conflicts or fails validation, none of the batch is saved.
-
-The spreadsheet is parsed in the browser. The optional **Suggest columns with AI** action sends only the spreadsheet headings to the mapping service; student names and marks are not sent to Severain AI. Configure `AI_API_BASE_URL`, `AI_API_KEY`, and `AI_MODEL` on the school backend to enable suggestions; manual column mapping still works without them. The workbook is sent to the authenticated school API only after an administrator confirms the import. Do not publish results until you have reviewed them.
-
 ## Environment Variables
 
 Create a `.env` file in the root directory with the following variables:
@@ -38,9 +24,6 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 VITE_API_BASE_URL=https://your-backend-api.onrender.com
 VITE_ASSETS_BASE_URL=https://your-backend-api.onrender.com
 VITE_SMART_MANAGEMENT_API_BASE_URL=https://your-smart-management-service.onrender.com
-
-# Cadeau AI Service
-VITE_CADEAU_URL=https://your-cadeau-service.com
 
 # Flask Timetable Services
 VITE_FLASK_TIMETABLE_ADMIN_URL=https://your-timetable-admin.com
@@ -77,11 +60,17 @@ Administrators can open **Student Results** in the dashboard to add or edit subj
 
 Run `migrations/2026-10-20_student_results.sql` in the backend project against an existing database before deploying these changes.
 
+<<<<<<< HEAD
 ## Smart Management and meetings
 
 The React admin panel includes a meetings workspace backed by the Smart Management Flask service. Set `VITE_SMART_MANAGEMENT_API_BASE_URL` to that service's public base URL. On the Flask service, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the same Supabase project configured for this React app, and set `ADMIN_PANEL_ORIGINS` to the exact deployed admin-panel origin(s).
 
 The Flask service verifies each Supabase bearer token with Supabase Auth, then finds an active Smart Management account with the same confirmed email. Meeting roles, guardian relationships, class scope, and record permissions continue to come from Smart Management's database. Accounts need matching emails in both systems. The React workspace includes meeting scheduling, parent requests, invitations, attendance, agendas, minutes and approvals, action tracking, reports, guardian links, room reservations, Teams links, policy settings, and the audit trail.
+=======
+## Documents
+
+To add a document, sign in to the admin panel, open **Documents**, choose a PDF, Word, PowerPoint, or Excel file, and select **Upload File**. To download one, open **Documents** on the public website and select **Download** beside the file. Use the dashboard's **Delete** action to remove a document from both the library and public list.
+>>>>>>> b533152 (committed)
 
 ## Deployment to Render
 
@@ -110,11 +99,8 @@ The Flask service verifies each Supabase bearer token with Supabase Auth, then f
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_PROJECT_REF`
    - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_SEVERAIN_AI_SUPABASE_URL`
-   - `VITE_SEVERAIN_AI_SUPABASE_ANON_KEY`
    - `VITE_API_BASE_URL`
    - `VITE_ASSETS_BASE_URL`
-   - `VITE_CADEAU_URL`
    - `VITE_FLASK_TIMETABLE_ADMIN_URL`
    - `VITE_FLASK_TIMETABLE_CLIENT_URL`
 

@@ -98,7 +98,6 @@ export const timetablesAPI = {
   create: (data) => api.post('/timetables', data),
   update: (id, data) => api.put(`/timetables/${id}`, data),
   delete: (id) => api.delete(`/timetables/${id}`),
-  syncCadeau: () => api.post('/timetables/sync-cadeau'),
 };
 
 export const galleryAPI = {

@@ -5,13 +5,13 @@ import { useAuth } from "../context/AuthContext";
 import RichTextEditor from "../components/RichTextEditor";
 import { richTextToPlainText } from "../utils/richText";
 import StudentResultsManager from "./StudentResultsManager";
-import SeverainAdminAssistant from "./SeverainAdminAssistant";
 import { STUDENT_LEVELS } from "../constants/studentLevels";
 import "../styles/admin.css";
 
 const SIDEBAR_ITEMS = [
   { id: "overview", label: "Dashboard", icon: "bi-grid-1x2" },
   { id: "uploads", label: "Uploads API", icon: "bi-cloud-arrow-up" },
+  { id: "documents", label: "Documents", icon: "bi-file-earmark-arrow-down" },
   { id: "gallery", label: "Website Gallery", icon: "bi-images" },
   { id: "events", label: "Events API", icon: "bi-calendar-event" },
   { id: "announcements", label: "Announcements API", icon: "bi-megaphone" },
@@ -27,7 +27,6 @@ const SIDEBAR_ITEMS = [
   { id: "contactInfo", label: "Contact Info API", icon: "bi-telephone" },
   { id: "messages", label: "Client Messages API", icon: "bi-inbox" },
   { id: "users", label: "Users API", icon: "bi-shield-lock" },
-  { id: "aiChat", label: "Severain AI", icon: "bi-stars" },
 ];
 
 const WEBSITE_CONTENT_PAGES = [
@@ -336,7 +335,6 @@ function ResourcePanel({
   onCancelEdit,
   onResetPassword,
   onUploadAndAssign,
-  onOpenAssistant,
   status,
 }) {
   const cfg = RESOURCE_CONFIG[section];
@@ -392,7 +390,6 @@ function ResourcePanel({
       <div className="adm-panel-head">
         <div>
           <h3>{cfg.title}</h3>
-          {section === "students" && <button className="adm-btn adm-btn-light" onClick={onOpenAssistant} type="button">Ask Severain AI about student workflows</button>}
         </div>
         <p>{section === "content" ? "Edit page copy and media. Add one row per section; use hero for the banner and seo for the search description." : `Connected to ${cfg.endpoint}`}</p>
       </div>
@@ -764,7 +761,7 @@ function MessagesPanel({ messages, onUpdateStatus, onDelete, status }) {
   );
 }
 
-function UploadsPanel({ uploads, status, uploading, onUpload, onDelete, onCopyPath }) {
+function UploadsPanel({ uploads, status, uploading, onUpload, onDelete, onCopyPath, documentsOnly = false }) {
   const [file, setFile] = useState(null);
 
   const handleSubmit = async (event) => {
@@ -778,15 +775,20 @@ function UploadsPanel({ uploads, status, uploading, onUpload, onDelete, onCopyPa
   return (
     <div className="adm-panel">
       <div className="adm-panel-head">
-        <h3>Uploads Library</h3>
-        <p>Connected to `/uploads` for file upload, listing, and deletion.</p>
+        <h3>{documentsOnly ? "Documents Library" : "Uploads Library"}</h3>
+        <p>
+          {documentsOnly
+            ? "Upload documents here to make them available on the public Documents page."
+            : "Connected to `/uploads` for file upload, listing, and deletion."}
+        </p>
       </div>
 
       <form className="adm-form" onSubmit={handleSubmit}>
         <label className="adm-field adm-field-wide">
-          <span>Upload image, video, or document</span>
+          <span>{documentsOnly ? "Upload a document (PDF, Word, PowerPoint, or Excel)" : "Upload image, video, or document"}</span>
           <input
             type="file"
+            accept={documentsOnly ? ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" : undefined}
             onChange={(event) => setFile(event.target.files?.[0] || null)}
             required
           />
@@ -824,6 +826,14 @@ function UploadsPanel({ uploads, status, uploading, onUpload, onDelete, onCopyPa
                 <td>{displayValue(row.created_at)}</td>
                 <td>
                   <div className="adm-actions">
+                    {row.type === "document" && (
+                      <a
+                        className="adm-btn adm-btn-light"
+                        href={`${API_BASE_URL}/api/uploads/public/documents/${row.id}/download`}
+                      >
+                        Download
+                      </a>
+                    )}
                     <button type="button" className="adm-btn adm-btn-light" onClick={() => onCopyPath(row.path)}>
                       Copy Path
                     </button>
@@ -1119,8 +1129,8 @@ export default function AdminDashboard() {
   const adminName = user?.full_name?.trim()?.split(/\s+/)[0] || user?.username || "Admin";
   const navGroups = [
     { label: "OVERVIEW", items: SIDEBAR_ITEMS.filter((item) => item.id === "overview") },
-    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "gallery", "events", "announcements", "content", "students", "results", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
-    { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users", "aiChat"].includes(item.id)) },
+    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "documents", "gallery", "events", "announcements", "content", "students", "results", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
+    { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users"].includes(item.id)) },
   ].map((group) => ({
     ...group,
     items: group.items.filter((item) => item.label.toLowerCase().includes(navQuery.trim().toLowerCase())),
@@ -1704,10 +1714,20 @@ export default function AdminDashboard() {
         onCopyPath={copyUploadPath}
       />
     );
+  } else if (active === "documents") {
+    content = (
+      <UploadsPanel
+        uploads={rows.uploads.filter((file) => file.type === "document")}
+        status={status}
+        uploading={uploading}
+        onUpload={uploadLibraryFile}
+        onDelete={deleteUpload}
+        onCopyPath={copyUploadPath}
+        documentsOnly
+      />
+    );
   } else if (active === "results") {
-    content = <StudentResultsManager onOpenAssistant={() => setActive("aiChat")} />;
-  } else if (active === "aiChat") {
-    content = <SeverainAdminAssistant />;
+    content = <StudentResultsManager />;
   } else if (active === "messages") {
     content = <MessagesPanel messages={rows.messages} onUpdateStatus={updateMessageStatus} onDelete={deleteMessage} status={status} />;
   } else if (active === "siteSettings") {
@@ -1756,7 +1776,6 @@ export default function AdminDashboard() {
         onCancelEdit={() => resetSectionForm(active)}
         onResetPassword={resetUserPassword}
         onUploadAndAssign={(file, fieldKey) => uploadAndAssign(active, file, fieldKey)}
-        onOpenAssistant={() => setActive("aiChat")}
         status={status}
       />
     );
