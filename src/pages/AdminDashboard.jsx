@@ -1814,13 +1814,6 @@ export default function AdminDashboard() {
               ))}
             </div>
           ))}
-          <div className="adm-nav-group">
-            <span className="adm-nav-group-label">SCHOOL OPERATIONS</span>
-            <button className="adm-nav-item" type="button" onClick={() => navigate("/meetings")}>
-              <i className="bi bi-calendar2-week"></i>
-              <span>Parent &amp; Staff Meetings</span>
-            </button>
-          </div>
           {navGroups.length === 0 && <p className="adm-nav-empty">No matching sections</p>}
         </nav>
       </aside>
