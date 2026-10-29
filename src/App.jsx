@@ -7,6 +7,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const TeacherResultsPage = lazy(() => import("./pages/TeacherResultsPage"));
 const MeetingsPage = lazy(() => import("./pages/MeetingsPage"));
+const AdminWorkspace = lazy(() => import("./pages/AdminWorkspace"));
 
 function RouteLoading() {
   return (
@@ -61,6 +62,14 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
         <Route path="/teacher-results" element={<ProtectedRoute requireTeacher><TeacherResultsPage /></ProtectedRoute>} />
         <Route path="/meetings" element={<ProtectedRoute><MeetingsPage /></ProtectedRoute>} />
+        <Route
+          path="/admin/workspace"
+          element={
+            <ProtectedRoute requireAdmin>
+              <AdminWorkspace />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Suspense>
   );
