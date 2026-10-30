@@ -1,0 +1,335 @@
+body {
+  background: linear-gradient(180deg, #f5f7fb 0%, #edf3ff 100%);
+  color: #0f172a;
+}
+
+.main {
+  background: transparent;
+}
+
+.section {
+  position: relative;
+  overflow: hidden;
+}
+
+#header {
+  background: linear-gradient(135deg, #0b1f3a 0%, #162d4a 50%, #0f172a 100%) !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+#header .logo {
+  gap: 0.8rem !important;
+}
+
+#header .logo h1,
+#header .logo p {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+}
+
+#navmenu {
+  gap: 0.4rem;
+}
+
+#navmenu a {
+  color: #e2e8f0 !important;
+  font-weight: 700 !important;
+  padding: 0.7rem 0.95rem !important;
+  border-radius: 999px !important;
+  transition: all 0.2s ease;
+}
+
+#navmenu a.active,
+#navmenu a:hover,
+#navmenu a:focus {
+  color: #0f172a !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+#header .btn,
+.btn,
+button:not(.btn-close):not(.accordion-button):not(.mobile-nav-toggle):not(.student-portal-btn-muted) {
+  border-radius: 999px !important;
+  border: none !important;
+  box-shadow: 0 10px 24px rgba(59, 130, 246, 0.22) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease !important;
+}
+
+#header .btn:hover,
+.btn:hover,
+button:not(.btn-close):not(.accordion-button):not(.mobile-nav-toggle):not(.student-portal-btn-muted):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(59, 130, 246, 0.26) !important;
+}
+
+#header .btn,
+#header .btn:hover,
+button:not(.btn-close):not(.accordion-button):not(.mobile-nav-toggle):not(.student-portal-btn-muted),
+button:not(.btn-close):not(.accordion-button):not(.mobile-nav-toggle):not(.student-portal-btn-muted):hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+  color: #0f172a !important;
+}
+
+#header .btn {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.mobile-nav-toggle {
+  color: #ffffff !important;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.25rem 0.5rem;
+}
+
+.heroSwiper .swiper-slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.10), rgba(15, 23, 42, 0.52));
+  z-index: 1;
+}
+
+.heroSwiper .swiper-slide > img {
+  filter: saturate(1.05) contrast(1.04);
+  transform: scale(1.02);
+}
+
+.hero-center {
+  z-index: 2;
+  width: min(92%, 1000px);
+}
+
+.hero-center h2,
+.hero-center h3 {
+  text-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+}
+
+.hero-center h2 {
+  letter-spacing: -0.03em;
+}
+
+.about,
+.why-us,
+.courses,
+.trainers-index {
+  padding-top: 5rem !important;
+  padding-bottom: 5rem !important;
+}
+
+.section-title h2,
+.section-title h1 {
+  font-size: clamp(2rem, 3vw, 2.8rem) !important;
+  color: #0f172a !important;
+  letter-spacing: -0.04em;
+}
+
+.section-title p {
+  color: #475569 !important;
+  font-size: 1.06rem !important;
+}
+
+.why-box,
+.icon-box,
+.card,
+.member,
+.adm-panel,
+.adm-overview {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08) !important;
+  overflow: hidden;
+}
+
+.why-box {
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.why-box h3,
+.why-box p,
+.why-box .btn {
+  color: #ffffff !important;
+}
+
+.why-box .btn {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.icon-box {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 2rem 1.5rem !important;
+}
+
+.icon-box .mb-3 {
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #e0f2fe, #fef3c7) !important;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
+}
+
+.icon-box i {
+  font-size: 1.9rem !important;
+}
+
+.icon-box h4,
+.member-info h4,
+.card-title {
+  color: #0f172a !important;
+}
+
+#courses .card {
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#courses .card:hover,
+.member:hover,
+.icon-box:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.12) !important;
+}
+
+#courses .card .position-relative {
+  border-radius: 24px 24px 0 0;
+}
+
+#courses .card .badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+  color: #111827 !important;
+  border-radius: 999px !important;
+  padding: 0.5rem 0.8rem !important;
+  font-weight: 800;
+}
+
+#courses .card img,
+.member-img img,
+.about-img img {
+  border-radius: 22px;
+}
+
+.member {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.member-img {
+  position: relative;
+  overflow: hidden;
+}
+
+.member-img::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 36%;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.15) 100%);
+}
+
+.member-info {
+  padding: 1.5rem !important;
+}
+
+.member-info span {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.member .social a {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #fef3c7 100%) !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+#footer {
+  background: linear-gradient(135deg, #071426 0%, #122744 100%) !important;
+  color: #e2e8f0 !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 2.5rem !important;
+  padding-bottom: 1.5rem !important;
+}
+
+#footer .footer-content {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+  padding: 0 2rem 1.5rem;
+}
+
+#footer .footer-section h4 {
+  color: #ffffff !important;
+  font-size: 1.15rem !important;
+  font-weight: 800;
+}
+
+#footer .footer-section p,
+#footer .footer-section div,
+#footer .footer-section strong {
+  color: #dbeafe !important;
+}
+
+.social-icons a {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease;
+}
+
+.social-icons a:hover {
+  background: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  transform: translateY(-2px);
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(148, 163, 184, 0.14);
+  padding-top: 1rem;
+  color: #dbeafe !important;
+}
+
+@media (max-width: 992px) {
+  #footer .footer-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem 1rem;
+  }
+
+  #navmenu {
+    gap: 0.2rem;
+  }
+
+  #navmenu a {
+    padding: 0.6rem 0.7rem !important;
+    font-size: 0.88rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .about,
+  .why-us,
+  .courses,
+  .trainers-index {
+    padding-top: 4rem !important;
+    padding-bottom: 4rem !important;
+  }
+
+  .hero-center h2 {
+    font-size: clamp(1.8rem, 8vw, 2.6rem) !important;
+  }
+
+  .hero-center h3 {
+    font-size: clamp(1rem, 4vw, 1.5rem) !important;
+  }
+}
