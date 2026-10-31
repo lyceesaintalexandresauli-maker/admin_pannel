@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /profile
+Disallow: /login
+Disallow: /student
+Disallow: /student/
+
+Sitemap: https://www.lyceemuhura.rw/sitemap.xml
