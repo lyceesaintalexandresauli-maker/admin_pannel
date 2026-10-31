@@ -446,6 +446,10 @@
   margin-bottom: 20px;
 }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 /* Chat Tab */
 .chat-tab-content {
   height: calc(100vh - 180px);
@@ -658,6 +662,11 @@
   border-color: #6366f1;
 }
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
 /* Print Styles */
 @media print {
   .no-print {
@@ -729,6 +738,10 @@
     flex-direction: column;
     gap: 12px;
   }
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 
   .chat-tab-content {
     height: calc(100vh - 160px);
@@ -1361,4 +1374,9 @@
   .btn-delete-conv {
     opacity: 1;
   }
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
 }

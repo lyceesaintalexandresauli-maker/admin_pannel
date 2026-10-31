@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { contentAPI } from "../api/services";
@@ -196,5 +200,25 @@ export default function AcademicPage() {
         </div>
       </section>
     </main>
+<<<<<<< HEAD
+=======
+=======
+import EditableWebsitePage from "../components/EditableWebsitePage";
+
+export default function AcademicPage() {
+  return (
+    <EditableWebsitePage
+      page="academic"
+      title="Academic Programs"
+      subtitle="Academic programs and information"
+      description="Explore academic programs at Lycee de Muhura, including technical and vocational studies."
+      fallbackSections={[
+        { section: "intro", title: "Learning at Lycee de Muhura", content: "Our academic program combines classroom learning with practical training and guidance from dedicated teachers." },
+        { section: "programs", title: "Programs", content: "Explore our programs in Fashion Design, Accounting, Software Development, Computer Systems and Architecture, and Networking and Internet Technology." },
+        { section: "admissions", title: "Admissions", content: "Contact the school for current admission requirements, schedules, and available programs." },
+      ]}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   );
 }

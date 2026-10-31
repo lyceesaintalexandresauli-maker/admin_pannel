@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -270,5 +274,24 @@ export default function NitPage() {
       
       <section className="py-3"></section>
     </main>
+<<<<<<< HEAD
+=======
+=======
+import EditableWebsitePage from "../components/EditableWebsitePage";
+
+export default function NitPage() {
+  return (
+    <EditableWebsitePage
+      page="nit"
+      title="Networking and Internet Technology"
+      subtitle="Networking & Internet Technology (NIT)"
+      description="Explore Networking and Internet Technology at Lycee Saint Alexandre Sauli de Muhura."
+      fallbackSections={[
+        { section: "intro", title: "Networking and Internet Technology", content: "Students learn to configure, secure, and maintain computer networks and internet services." },
+        { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
+      ]}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   );
 }

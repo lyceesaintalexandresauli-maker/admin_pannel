@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -300,5 +304,24 @@ export default function FadPage() {
         }
       `}</style>
     </main>
+<<<<<<< HEAD
+=======
+=======
+import EditableWebsitePage from "../components/EditableWebsitePage";
+
+export default function FadPage() {
+  return (
+    <EditableWebsitePage
+      page="fad"
+      title="School of Fashion and Design"
+      subtitle="Fashion and design programs"
+      description="Learn about the Fashion and Design program at Lycee Saint Alexandre Sauli de Muhura."
+      fallbackSections={[
+        { section: "intro", title: "Fashion and Design", content: "Students develop creative, technical, and practical skills in fashion and design." },
+        { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
+      ]}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   );
 }

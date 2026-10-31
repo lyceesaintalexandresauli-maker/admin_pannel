@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -300,5 +304,24 @@ export default function CsaPage() {
         }
       `}</style>
     </main>
+<<<<<<< HEAD
+=======
+=======
+import EditableWebsitePage from "../components/EditableWebsitePage";
+
+export default function CsaPage() {
+  return (
+    <EditableWebsitePage
+      page="csa"
+      title="Computer Systems and Architecture"
+      subtitle="Computer Systems & Architecture (CSA)"
+      description="Explore the Computer Systems and Architecture program at Lycee Saint Alexandre Sauli de Muhura."
+      fallbackSections={[
+        { section: "intro", title: "Computer Systems and Architecture", content: "Students learn how computer hardware, operating systems, and networks work together." },
+        { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
+      ]}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   );
 }

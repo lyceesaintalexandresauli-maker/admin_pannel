@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -215,5 +219,44 @@ export default function HomePage() {
 
       <section className="home-join"><div className="home-join-overlay" /><div className="home-wrap home-join-content"><span className="home-join-icon"><i className="bi bi-mortarboard" /></span><div><h2>Ready to Join Our School?</h2><p>Take the first step towards a brighter future. Apply now or contact us to learn more.</p></div><div className="home-join-actions"><Link className="home-btn home-btn-white" to="/contact">Apply for Admission <i className="bi bi-arrow-right" /></Link><Link className="home-btn home-btn-outline" to="/contact">Contact Us</Link></div></div></section>
     </main>
+<<<<<<< HEAD
+=======
+=======
+import EditableWebsitePage from "../components/EditableWebsitePage";
+
+const fallbackSections = [
+  {
+    section: "intro",
+    title: "About our school",
+    content: "Lycee Saint Alexandre Sauli de Muhura is dedicated to providing quality technical and vocational education and practical skills for the future.",
+  },
+  {
+    section: "values",
+    title: "Quality Education",
+    content: "Comprehensive learning designed to prepare students for further study and the world of work.",
+  },
+  {
+    section: "programs",
+    title: "Practical Skills",
+    content: "Hands-on training helps students build skills they can use in their communities and careers.",
+  },
+  {
+    section: "custom",
+    title: "Our Faculty",
+    content: "Our teachers and staff support students throughout their education.",
+  },
+];
+
+export default function HomePage() {
+  return (
+    <EditableWebsitePage
+      page="index"
+      title="Welcome to Lycee Saint Alexandre Sauli"
+      subtitle="Excellence in Technical and Vocational Education"
+      description="Welcome to Lycee Saint Alexandre Sauli de Muhura, a school for technical and vocational education."
+      fallbackSections={fallbackSections}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   );
 }

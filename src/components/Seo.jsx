@@ -1,12 +1,29 @@
 import { Helmet } from "react-helmet-async";
+<<<<<<< HEAD
 import { resolveSiteUrl } from "../config/publicOrigin";
 
 const SITE_NAME = "Lycee Saint Alexandre Sauli de Muhura";
+=======
+<<<<<<< HEAD
+import { resolveSiteUrl } from "../config/publicOrigin";
+
+const SITE_NAME = "Lycee Saint Alexandre Sauli de Muhura";
+=======
+
+const SITE_NAME = "Lycee Saint Alexandre Sauli de Muhura";
+const SITE_URL = (import.meta.env.VITE_SITE_URL || "https://lycee-muhura.onrender.com").replace(/\/+$/, "");
+const DEFAULT_IMAGE = `${SITE_URL}/assets/img/logo1.jpg`;
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
 
 const normalizePath = (path = "/") => {
   const safePath = String(path || "/").trim();
   if (!safePath || safePath === "/") return "/";
   const withLeadingSlash = safePath.startsWith("/") ? safePath : `/${safePath}`;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
   return withLeadingSlash.replace(/\/+$/, "") || "/";
 };
 
@@ -16,17 +33,35 @@ const absoluteUrl = (siteUrl, path) => {
   if (!siteUrl) return "";
   const suffix = path.startsWith("/") ? path : `/${path}`;
   return `${siteUrl.replace(/\/$/, "")}${suffix}`;
+<<<<<<< HEAD
+=======
+=======
+  return withLeadingSlash.replace(/\/+$/, "");
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
 };
 
 export default function Seo({
   title,
   description,
   path = "/",
+<<<<<<< HEAD
   image,
+=======
+<<<<<<< HEAD
+  image,
+=======
+  image = DEFAULT_IMAGE,
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   robots = "index,follow",
   type = "website",
   structuredData = null,
 }) {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
   const siteUrl = resolveSiteUrl();
   const normalizedPath = normalizePath(path);
   const canonical = siteUrl ? `${siteUrl.replace(/\/$/, "")}${normalizedPath}` : "";
@@ -34,6 +69,15 @@ export default function Seo({
   const resolvedImage = image
     ? absoluteUrl(siteUrl, image)
     : absoluteUrl(siteUrl, "/assets/img/logo1.jpg");
+<<<<<<< HEAD
+=======
+=======
+  const normalizedPath = normalizePath(path);
+  const canonicalUrl = `${SITE_URL}${normalizedPath}`;
+  const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+  const resolvedImage = image || DEFAULT_IMAGE;
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
   const jsonLd = structuredData ? JSON.stringify(structuredData) : "";
 
   return (
@@ -41,17 +85,40 @@ export default function Seo({
       <title>{pageTitle}</title>
       <meta name="description" content={description} />
       <meta name="robots" content={robots} />
+<<<<<<< HEAD
       {canonical.startsWith("http") ? <link rel="canonical" href={canonical} /> : null}
+=======
+<<<<<<< HEAD
+      {canonical.startsWith("http") ? <link rel="canonical" href={canonical} /> : null}
+=======
+      <link rel="canonical" href={canonicalUrl} />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={description} />
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
       {canonical.startsWith("http") ? <meta property="og:url" content={canonical} /> : null}
       {resolvedImage.startsWith("http") ? <meta property="og:image" content={resolvedImage} /> : null}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={description} />
       {resolvedImage.startsWith("http") ? <meta name="twitter:image" content={resolvedImage} /> : null}
+<<<<<<< HEAD
+=======
+=======
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:image" content={resolvedImage} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={pageTitle} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={resolvedImage} />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
+>>>>>>> origin/main
       {jsonLd ? <script type="application/ld+json">{jsonLd}</script> : null}
     </Helmet>
   );
