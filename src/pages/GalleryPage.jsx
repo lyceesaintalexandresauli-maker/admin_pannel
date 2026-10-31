@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useMemo, useState } from "react";
 import { galleryAPI } from "../api/services";
 import { mediaUrl } from "../api/client";
@@ -107,5 +108,29 @@ export default function GalleryPage() {
 
       {selectedItem && <div className="gallery-video-modal" role="dialog" aria-modal="true" aria-label={itemTitle(selectedItem)} onClick={() => setSelectedItem(null)}><div className="gallery-video-dialog" onClick={(event) => event.stopPropagation()}><button className="gallery-video-close" aria-label="Close video" onClick={() => setSelectedItem(null)}><i className="bi bi-x-lg" /></button><video src={mediaUrl(selectedItem.media_path)} controls autoPlay /><h3>{itemTitle(selectedItem)}</h3><p>{itemDescription(selectedItem)}</p></div></div>}
     </main>
+=======
+import WebsiteCollectionPage from "../components/WebsiteCollectionPage";
+
+export default function GalleryPage() {
+  return (
+    <WebsiteCollectionPage
+      endpoint="/gallery"
+      title="School Gallery"
+      subtitle="Life, learning, and activities at Lycee de Muhura"
+      description="Photos and videos from Lycee Saint Alexandre Sauli de Muhura."
+      emptyMessage="The school gallery is being prepared."
+      filterRecord={(item) => item.is_active !== false}
+      renderRecord={(item, { mediaUrl }) => (
+        <article className="card h-100 border-0 shadow-sm overflow-hidden">
+          {String(item.media_type || "").toLowerCase() === "video" ? (
+            <video className="w-100" src={mediaUrl(item.media_path)} controls preload="metadata" />
+          ) : (
+            <img className="card-img-top" src={mediaUrl(item.media_path)} alt={item.title || "School gallery"} loading="lazy" style={{ maxHeight: 300, objectFit: "cover" }} />
+          )}
+          {item.title && <div className="card-body"><h2 className="h6 card-title mb-0">{item.title}</h2></div>}
+        </article>
+      )}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
   );
 }

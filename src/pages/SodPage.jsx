@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -301,5 +302,21 @@ export default function SodPage() {
         .slide-text h1 { font-size: clamp(1.8rem, 4vw, 3rem); margin-bottom: .8rem; }
       `}</style>
     </main>
+=======
+import EditableWebsitePage from "../components/EditableWebsitePage";
+
+export default function SodPage() {
+  return (
+    <EditableWebsitePage
+      page="sod"
+      title="Software Development"
+      subtitle="Software Development (SOD) program"
+      description="Explore the Software Development program at Lycee Saint Alexandre Sauli de Muhura."
+      fallbackSections={[
+        { section: "intro", title: "Software Development", content: "Students build the skills to design, create, test, and maintain software." },
+        { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
+      ]}
+    />
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
   );
 }

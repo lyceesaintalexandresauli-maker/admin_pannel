@@ -1,12 +1,17 @@
 import axios from "axios";
 
 const LOCAL_API_BASE_URL = "http://localhost:5000";
+<<<<<<< HEAD
+=======
+const DEFAULT_REMOTE_API_BASE_URL = "https://muhura-backend.onrender.com";
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
 const LOCAL_API_ORIGINS = new Set(["http://localhost:5000", "http://127.0.0.1:5000"]);
 
 const trimTrailingSlash = (value = "") => String(value).replace(/\/+$/, "");
 const isLocalValue = (value = "") => LOCAL_API_ORIGINS.has(trimTrailingSlash(value));
 const isLocalFrontend = () =>
   /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(window.location.origin);
+<<<<<<< HEAD
 
 const resolveApiBaseUrl = () => {
   const configured = trimTrailingSlash(import.meta.env.VITE_API_BASE_URL || "");
@@ -17,10 +22,19 @@ const resolveApiBaseUrl = () => {
     return LOCAL_API_BASE_URL;
   }
   return "";
+=======
+const getCurrentOrigin = () => trimTrailingSlash(window.location.origin || "");
+
+const resolveApiBaseUrl = () => {
+  const configured = trimTrailingSlash(import.meta.env.VITE_API_BASE_URL || "");
+  if (configured && (!isLocalValue(configured) || isLocalFrontend())) return configured;
+  return isLocalFrontend() ? LOCAL_API_BASE_URL : DEFAULT_REMOTE_API_BASE_URL;
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
 };
 
 const resolveAssetsBaseUrl = (apiBaseUrl) => {
   const configured = trimTrailingSlash(import.meta.env.VITE_ASSETS_BASE_URL || "");
+<<<<<<< HEAD
   if (configured && (!isLocalValue(configured) || isLocalFrontend())) {
     return configured;
   }
@@ -28,14 +42,23 @@ const resolveAssetsBaseUrl = (apiBaseUrl) => {
     return "";
   }
   return apiBaseUrl;
+=======
+  if (configured && (!isLocalValue(configured) || isLocalFrontend())) return configured;
+  return isLocalFrontend() ? "" : apiBaseUrl;
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
 };
 
 export const API_BASE_URL = resolveApiBaseUrl();
 export const ASSETS_BASE_URL = resolveAssetsBaseUrl(API_BASE_URL);
 
 export const api = axios.create({
+<<<<<<< HEAD
   baseURL: API_BASE_URL ? `${API_BASE_URL}/api` : "/api",
   timeout: 10000,
+=======
+  baseURL: `${API_BASE_URL}/api`,
+  timeout: 60000,
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
 });
 
 const IDEMPOTENT_METHODS = new Set(["get", "head", "options"]);
@@ -74,7 +97,10 @@ api.interceptors.response.use(
 
     if (shouldRetry && !config.__retry) {
       config.__retry = true;
+<<<<<<< HEAD
       await new Promise((resolve) => setTimeout(resolve, 350));
+=======
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
       return api(config);
     }
 
@@ -83,6 +109,7 @@ api.interceptors.response.use(
 );
 
 export const getApiError = (error, fallback = "Request failed") =>
+<<<<<<< HEAD
   error?.response?.data?.error || fallback;
 
 export const mediaUrl = (inputPath) => {
@@ -118,4 +145,26 @@ export const mediaUrl = (inputPath) => {
   if (uploadPath.startsWith("assets/")) return `${ASSETS_BASE_URL}/${uploadPath}`;
 
   return normalizedPath;
+=======
+  error?.response?.data?.error || error?.message || fallback;
+
+export const mediaUrl = (inputPath) => {
+  if (!inputPath) return "";
+
+  if (/^https?:\/\//i.test(inputPath)) {
+    if (!isLocalFrontend()) {
+      return inputPath.replace(
+        /^https?:\/\/(localhost|127\.0\.0\.1):5000/i,
+        API_BASE_URL
+      );
+    }
+    return inputPath;
+  }
+
+  if (inputPath.startsWith("/uploads")) return `${API_BASE_URL}${inputPath}`;
+  if (inputPath.startsWith("/assets")) return `${ASSETS_BASE_URL}${inputPath}`;
+  if (inputPath.startsWith("assets/")) return `${ASSETS_BASE_URL}/${inputPath}`;
+
+  return inputPath;
+>>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
 };
