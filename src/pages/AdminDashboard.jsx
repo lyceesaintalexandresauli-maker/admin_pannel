@@ -792,6 +792,12 @@ function UploadsPanel({ uploads, status, uploading, onUpload, onDelete, onCopyPa
             onChange={(event) => setFile(event.target.files?.[0] || null)}
             required
           />
+          {!documentsOnly && (
+            <small className="adm-help-note">
+              Video uploads are limited to 50 MB by default. Larger uploads require increasing the backend
+              <code> MAX_UPLOAD_SIZE_MB</code> setting and the Supabase Storage bucket limit.
+            </small>
+          )}
         </label>
         <div className="adm-form-actions">
           <button type="submit" className="adm-btn" disabled={uploading || !file}>
@@ -1261,18 +1267,30 @@ export default function AdminDashboard() {
   };
 
   const uploadFile = async (file) => {
-    setUploading(true);
     if (!file) return null;
+    setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
+    const uploadKind = file.type.startsWith("video/") ? "video" : "file";
     try {
+      setStatus(`Uploading ${uploadKind}…`);
       const { data } = await api.post("/uploads", formData, {
-        timeout: 120000, // 2 minutes for larger files
+        timeout: 600000,
+        onUploadProgress: ({ loaded, total }) => {
+          if (total) setStatus(`Uploading ${uploadKind}… ${Math.round((loaded / total) * 100)}%`);
+        },
       });
-      return data?.file;
+      if (!data?.file?.path) {
+        throw new Error("The backend did not return a file path after upload. Refresh the page and check the uploads list.");
+      }
+      return data.file;
     } catch (error) {
       console.error("[uploadFile error]", error?.response?.status, error?.response?.data, error?.message);
-      throw error;
+      if (error?.response) throw error;
+      if (error?.code === "ECONNABORTED" || error?.code === "ETIMEDOUT") {
+        throw new Error("The video upload timed out. Check your connection and try a smaller or compressed video.");
+      }
+      throw new Error(`Could not reach the backend at ${API_BASE_URL}. Check that the server is online and the CORS origin is allowed.`);
     } finally {
       setUploading(false);
     }
