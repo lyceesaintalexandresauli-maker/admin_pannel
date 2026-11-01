@@ -1,446 +1,985 @@
-<<<<<<< HEAD
-import { useEffect, useState } from "react";
-import { academicAPI, usersAPI } from "../api/services";
-import { getApiError } from "../api/client";
-import { STUDENT_LEVELS, getProgramForLevel, getLevelLabel } from "../constants/studentLevels";
+import { useEffect, useMemo, useState } from "react";
 
-const initialModule = {
-  module_code: "", module_name: "", class_level: STUDENT_LEVELS[0]?.value || "L3SWD",
-  teacher_id: "", academic_year: "2026-2027", term: "Term 1",
-  cat_weight: 30, practical_weight: 20, exam_weight: 50,
-};
-const initialGenerate = {
-  class_level: STUDENT_LEVELS[0]?.value || "L3SWD",
-  academic_year: "2026-2027", term: "Term 1",
-};
+const STORAGE_KEY = "sauli_academic_results_system_v1";
+const tabs = [
+  { id: "dashboard", label: "Academic Dashboard" },
+  { id: "students", label: "Student Management" },
+  { id: "teachers", label: "Teacher Management" },
+  { id: "structure", label: "Academic Years & Terms" },
+  { id: "subjects", label: "Programs, Levels & Classes" },
+  { id: "assessments", label: "Examinations & Assessments" },
+  { id: "marks", label: "Marks Entry" },
+  { id: "results", label: "Results Calculation" },
+  { id: "rankings", label: "Rankings & Performance" },
+  { id: "approval", label: "Results Approval" },
+  { id: "reportcards", label: "Report Cards" },
+  { id: "settings", label: "Academic Settings" },
+];
+
+const panel = "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm";
+const fieldLabel = "block text-sm font-semibold text-slate-700";
 const inputClass = "mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100";
-const labelClass = "block text-sm font-semibold text-slate-700";
-const buttonPrimary = "inline-flex items-center justify-center rounded-xl bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50";
-const buttonSecondary = "inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50";
+const buttonPrimary = "inline-flex items-center justify-center rounded-xl bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60";
+const buttonSecondary = "inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50";
 
-const statusStyle = (status) => ({
-  draft: "bg-slate-100 text-slate-700",
-  submitted: "bg-amber-100 text-amber-800",
-  generated: "bg-emerald-100 text-emerald-800",
-}[status] || "bg-slate-100 text-slate-700");
+const defaultData = {
+  students: [
+    {
+      id: "ST-1001",
+      firstName: "Aline",
+      lastName: "Mugiraneza",
+      gender: "Female",
+      dob: "2010-05-12",
+      admissionDate: "2025-01-10",
+      program: "Software Development",
+      level: "Level 3",
+      className: "SOD 3A",
+      photo: "",
+      status: "Active",
+    },
+    {
+      id: "ST-1002",
+      firstName: "Eric",
+      lastName: "Ndayambaje",
+      gender: "Male",
+      dob: "2009-11-02",
+      admissionDate: "2024-09-03",
+      program: "Networking and Internet Technology",
+      level: "Level 2",
+      className: "NIT 2B",
+      photo: "",
+      status: "Active",
+    },
+  ],
+  teachers: [
+    { id: "T-1001", name: "Mr. Ndayisenga", email: "ndayisenga@school.rw", subject: "Database Design", role: "Teacher" },
+    { id: "T-1002", name: "Mrs. Mukamana", email: "mukamana@school.rw", subject: "Mathematics", role: "Teacher" },
+  ],
+  academicYears: [
+    { id: "AY-2026", name: "2026-2027", status: "Open" },
+    { id: "AY-2025", name: "2025-2026", status: "Closed" },
+  ],
+  terms: [
+    { id: "T1", name: "Term 1", startDate: "2026-09-01", endDate: "2026-11-15" },
+    { id: "T2", name: "Term 2", startDate: "2026-11-16", endDate: "2027-02-20" },
+    { id: "T3", name: "Term 3", startDate: "2027-02-21", endDate: "2027-05-30" },
+  ],
+  programs: [
+    { id: "P1", name: "Accounting" },
+    { id: "P2", name: "Software Development" },
+    { id: "P3", name: "Networking and Internet Technology" },
+    { id: "P4", name: "Computer System and Architecture" },
+    { id: "P5", name: "Fashion Design" },
+  ],
+  classes: [
+    { id: "C1", program: "Software Development", name: "SOD 3A", level: "Level 3", capacity: 35, teacher: "Mr. Ndayisenga" },
+    { id: "C2", program: "Networking and Internet Technology", name: "NIT 2B", level: "Level 2", capacity: 28, teacher: "Mrs. Mutesa" },
+  ],
+  subjects: [
+    { id: "SUB-101", code: "SWD301", name: "Database Design", program: "Software Development", level: "Level 3", compulsory: true, teacher: "Mr. Ndayisenga", credits: 4 },
+    { id: "SUB-102", code: "MAT101", name: "Mathematics", program: "Software Development", level: "Level 3", compulsory: true, teacher: "Mrs. Mukamana", credits: 4 },
+  ],
+  assessments: [
+    { id: "A1", name: "CAT", weight: 20 },
+    { id: "A2", name: "Practical", weight: 30 },
+    { id: "A3", name: "Final examination", weight: 50 },
+  ],
+  marks: [
+    { id: "M1", studentId: "ST-1001", studentName: "Aline Mugiraneza", subject: "Database Design", category: "CAT", score: 82, term: "Term 1", year: "2026-2027" },
+    { id: "M2", studentId: "ST-1001", studentName: "Aline Mugiraneza", subject: "Database Design", category: "Practical", score: 88, term: "Term 1", year: "2026-2027" },
+    { id: "M3", studentId: "ST-1001", studentName: "Aline Mugiraneza", subject: "Database Design", category: "Final examination", score: 90, term: "Term 1", year: "2026-2027" },
+    { id: "M4", studentId: "ST-1002", studentName: "Eric Ndayambaje", subject: "Mathematics", category: "CAT", score: 74, term: "Term 1", year: "2026-2027" },
+    { id: "M5", studentId: "ST-1002", studentName: "Eric Ndayambaje", subject: "Mathematics", category: "Practical", score: 70, term: "Term 1", year: "2026-2027" },
+    { id: "M6", studentId: "ST-1002", studentName: "Eric Ndayambaje", subject: "Mathematics", category: "Final examination", score: 78, term: "Term 1", year: "2026-2027" },
+  ],
+  approvals: [
+    { id: "R1", studentId: "ST-1001", studentName: "Aline Mugiraneza", subject: "Database Design", status: "Approved", term: "Term 1" },
+    { id: "R2", studentId: "ST-1002", studentName: "Eric Ndayambaje", subject: "Mathematics", status: "Pending", term: "Term 1" },
+  ],
+  attendance: [
+    { id: "A1", studentId: "ST-1001", studentName: "Aline Mugiraneza", present: 18, absent: 1, late: 2 },
+    { id: "A2", studentId: "ST-1002", studentName: "Eric Ndayambaje", present: 16, absent: 2, late: 1 },
+  ],
+};
+
+const readData = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : defaultData;
+  } catch {
+    return defaultData;
+  }
+};
+
+const gradeFor = (value) => {
+  if (value >= 90) return "A";
+  if (value >= 80) return "B";
+  if (value >= 70) return "C";
+  if (value >= 60) return "D";
+  if (value >= 50) return "E";
+  return "F";
+};
+
+const statusFor = (value) => (value >= 50 ? "Pass" : "Fail");
+
+const getWeightedStudentScore = (studentId, subject, term, year, data) => {
+  const records = data.marks.filter(
+    (mark) => mark.studentId === studentId && mark.subject === subject && mark.term === term && mark.year === year
+  );
+
+  if (!records.length) return null;
+
+  const cat = records.find((mark) => mark.category === "CAT")?.score ?? 0;
+  const practical = records.find((mark) => mark.category === "Practical")?.score ?? 0;
+  const finalExam = records.find((mark) => mark.category === "Final examination")?.score ?? 0;
+
+  const weighted = cat * 0.2 + practical * 0.3 + finalExam * 0.5;
+  return {
+    weighted,
+    grade: gradeFor(weighted),
+    status: statusFor(weighted),
+  };
+};
 
 export default function AcademicResultsWorkspace() {
-  const [modules, setModules] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [form, setForm] = useState(initialModule);
-  const [generateForm, setGenerateForm] = useState(initialGenerate);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [data, setData] = useState(() => readData());
   const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState(null);
-  const [sheetPreview, setSheetPreview] = useState(null);
 
-  const selectedProgram = getProgramForLevel(form.class_level);
-  const generateProgram = getProgramForLevel(generateForm.class_level);
-  const totalWeight = Number(form.cat_weight || 0) + Number(form.practical_weight || 0) + Number(form.exam_weight || 0);
-  const teacherCount = teachers.length;
-  const submittedCount = modules.filter((module) => module.status === "submitted").length;
-  const generatedCount = modules.filter((module) => module.status === "generated").length;
-  const draftCount = modules.filter((module) => module.status === "draft").length;
+  const [studentForm, setStudentForm] = useState({
+    firstName: "",
+    lastName: "",
+    gender: "Male",
+    dob: "",
+    admissionDate: "",
+    program: defaultData.programs[1].name,
+    level: "Level 3",
+    className: "SOD 3A",
+    status: "Active",
+  });
 
-  const loadData = async () => {
-    setLoading(true);
-    setError("");
+  const [teacherForm, setTeacherForm] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    role: "Teacher",
+  });
+
+  const [yearForm, setYearForm] = useState({ name: "2027-2028", status: "Open" });
+  const [termForm, setTermForm] = useState({ name: "Term 1", startDate: "", endDate: "" });
+  const [programForm, setProgramForm] = useState({ name: "" });
+  const [classForm, setClassForm] = useState({ program: defaultData.programs[1].name, name: "", level: "Level 3", capacity: 30, teacher: "" });
+  const [subjectForm, setSubjectForm] = useState({ code: "", name: "", program: defaultData.programs[1].name, level: "Level 3", compulsory: true, teacher: "", credits: 4 });
+  const [assessmentForm, setAssessmentForm] = useState({ name: "CAT", weight: 20 });
+  const [markForm, setMarkForm] = useState({
+    studentId: data.students[0]?.id || "",
+    subject: data.subjects[0]?.name || "",
+    category: "CAT",
+    score: 0,
+    term: "Term 1",
+    year: "2026-2027",
+  });
+
+  useEffect(() => {
     try {
-      const [moduleResponse, userResponse] = await Promise.all([
-        academicAPI.getModules(),
-        usersAPI.getAll(),
-      ]);
-      setModules(Array.isArray(moduleResponse.data) ? moduleResponse.data : []);
-      setTeachers((Array.isArray(userResponse.data) ? userResponse.data : []).filter((user) => user.role === "teacher" && user.is_active));
-    } catch (err) {
-      setError(getApiError(err, "Could not load academic modules and teacher accounts."));
-    } finally {
-      setLoading(false);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // browser storage may be unavailable; the UI still works in memory
     }
-  };
+  }, [data]);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    if (data.students.length > 0 && !markForm.studentId) {
+      setMarkForm((prev) => ({ ...prev, studentId: data.students[0].id }));
+    }
+  }, [data.students, markForm.studentId]);
 
-  const createModule = async (event) => {
+  const studentResults = useMemo(() => {
+    return data.students.map((student) => {
+      const subjects = data.subjects
+        .filter((subject) => subject.program === student.program && subject.level === student.level)
+        .map((subject) => {
+          const result = getWeightedStudentScore(student.id, subject.name, "Term 1", "2026-2027", data);
+          return {
+            subject: subject.name,
+            weighted: result?.weighted ?? 0,
+            grade: result?.grade ?? "F",
+            status: result?.status ?? "Fail",
+          };
+        });
+
+      const average = subjects.length
+        ? subjects.reduce((sum, item) => sum + item.weighted, 0) / subjects.length
+        : 0;
+
+      return {
+        id: student.id,
+        name: `${student.firstName} ${student.lastName}`,
+        program: student.program,
+        level: student.level,
+        className: student.className,
+        average,
+        grade: gradeFor(average),
+        status: statusFor(average),
+      };
+    });
+  }, [data]);
+
+  const dashboardStats = [
+    { label: "Total students", value: data.students.length },
+    { label: "Total teachers", value: data.teachers.length },
+    { label: "Programs", value: data.programs.length },
+    { label: "Published results", value: data.approvals.filter((item) => item.status === "Approved").length },
+    { label: "Pending marks", value: data.marks.length },
+    { label: "School average", value: `${(studentResults.reduce((sum, item) => sum + item.average, 0) / Math.max(studentResults.length, 1)).toFixed(1)}%` },
+  ];
+
+  const addStudent = (event) => {
     event.preventDefault();
-    setNotice(""); setError("");
-    if (!form.teacher_id) { setError("Create or select a teacher account before allocating a module."); return; }
-    if (totalWeight !== 100) { setError("CAT, practical and examination weights must total exactly 100%."); return; }
-    setSaving(true);
-    try {
-      await academicAPI.createModule({
-        ...form,
-        teacher_id: Number(form.teacher_id),
-        program_code: selectedProgram,
-        cat_weight: Number(form.cat_weight),
-        practical_weight: Number(form.practical_weight),
-        exam_weight: Number(form.exam_weight),
-      });
-      setNotice("Module allocated successfully. The teacher can now see the marks sheet after signing in.");
-      setForm({ ...initialModule, class_level: form.class_level, academic_year: form.academic_year, term: form.term });
-      await loadData();
-    } catch (err) {
-      setError(getApiError(err, "Unable to allocate this module."));
-    } finally {
-      setSaving(false);
-    }
-  };
+    const firstName = studentForm.firstName.trim();
+    const lastName = studentForm.lastName.trim();
 
-  const reopen = async (module) => {
-    setError(""); setNotice("");
-    try {
-      await academicAPI.reopenModule(module.id);
-      setNotice(`${module.module_name} has been reopened for the teacher.`);
-      await loadData();
-    } catch (err) {
-      setError(getApiError(err, "Unable to reopen this marks sheet."));
+    if (!firstName || !lastName) {
+      setNotice("Student first name and last name are required.");
+      return;
     }
-  };
 
-  const previewSheet = async (module) => {
-    setError("");
-    try {
-      const response = await academicAPI.getSheet(module.id);
-      setSheetPreview(response.data);
-    } catch (err) {
-      setError(getApiError(err, "Unable to open this marks sheet."));
-    }
-  };
-
-  const generate = async (event) => {
-    event.preventDefault();
-    setError(""); setNotice(""); setGenerating(true);
-    const payload = {
-      ...generateForm,
-      program_code: generateProgram,
+    const generatedId = `ST-${String(data.students.length + 1001).padStart(4, "0")}`;
+    const student = {
+      id: generatedId,
+      firstName,
+      lastName,
+      gender: studentForm.gender,
+      dob: studentForm.dob,
+      admissionDate: studentForm.admissionDate,
+      program: studentForm.program,
+      level: studentForm.level,
+      className: studentForm.className,
+      photo: "",
+      status: studentForm.status,
     };
-    try {
-      const response = await academicAPI.generateResults(payload);
-      setLastGenerated(payload);
-      setNotice(`${response.data.student_count} student results generated from ${response.data.module_count} modules. Results are not public until you publish them.`);
-      await loadData();
-    } catch (err) {
-      const pending = err?.response?.data?.pending_modules;
-      setError(`${getApiError(err, "Unable to generate results.")}${pending?.length ? ` Pending: ${pending.join(", ")}.` : ""}`);
-    } finally {
-      setGenerating(false);
-    }
+
+    setData((prev) => ({ ...prev, students: [student, ...prev.students] }));
+    setStudentForm({
+      firstName: "",
+      lastName: "",
+      gender: "Male",
+      dob: "",
+      admissionDate: "",
+      program: defaultData.programs[1].name,
+      level: "Level 3",
+      className: "SOD 3A",
+      status: "Active",
+    });
+    setNotice(`Student ${firstName} ${lastName} saved successfully.`);
   };
 
-  const publish = async () => {
-    if (!lastGenerated) return;
-    setError(""); setNotice("");
-    try {
-      const response = await academicAPI.publishResults(lastGenerated);
-      setNotice(`${response.data.published_records} student result record(s) published. Students can now view their results on the public Results page.`);
-    } catch (err) {
-      setError(getApiError(err, "Unable to publish results."));
+  const addTeacher = (event) => {
+    event.preventDefault();
+    if (!teacherForm.name.trim() || !teacherForm.email.trim()) {
+      setNotice("Teacher name and email are required.");
+      return;
     }
+
+    const teacher = {
+      id: `T-${String(data.teachers.length + 1001).padStart(4, "0")}`,
+      name: teacherForm.name.trim(),
+      email: teacherForm.email.trim(),
+      subject: teacherForm.subject.trim() || "General subject",
+      role: teacherForm.role,
+    };
+
+    setData((prev) => ({ ...prev, teachers: [teacher, ...prev.teachers] }));
+    setTeacherForm({ name: "", email: "", subject: "", role: "Teacher" });
+    setNotice(`Teacher ${teacher.name} added.`);
   };
+
+  const addYear = (event) => {
+    event.preventDefault();
+    if (!yearForm.name.trim()) {
+      setNotice("Academic year name is required.");
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      academicYears: [{ id: `AY-${Date.now()}`, name: yearForm.name.trim(), status: yearForm.status }, ...prev.academicYears],
+    }));
+    setYearForm({ name: "", status: "Open" });
+    setNotice("Academic year saved.");
+  };
+
+  const addTerm = (event) => {
+    event.preventDefault();
+    if (!termForm.name.trim()) {
+      setNotice("Term name is required.");
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      terms: [{ id: `TR-${Date.now()}`, name: termForm.name.trim(), startDate: termForm.startDate, endDate: termForm.endDate }, ...prev.terms],
+    }));
+    setTermForm({ name: "Term 1", startDate: "", endDate: "" });
+    setNotice("Academic term saved.");
+  };
+
+  const addProgram = (event) => {
+    event.preventDefault();
+    if (!programForm.name.trim()) {
+      setNotice("Program name is required.");
+      return;
+    }
+
+    setData((prev) => ({ ...prev, programs: [{ id: `P-${Date.now()}`, name: programForm.name.trim() }, ...prev.programs] }));
+    setProgramForm({ name: "" });
+    setNotice("Program created.");
+  };
+
+  const addClass = (event) => {
+    event.preventDefault();
+    if (!classForm.name.trim()) {
+      setNotice("Class name is required.");
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      classes: [{ id: `C-${Date.now()}`, ...classForm, name: classForm.name.trim() }, ...prev.classes],
+    }));
+    setClassForm({ program: defaultData.programs[1].name, name: "", level: "Level 3", capacity: 30, teacher: "" });
+    setNotice("Class saved successfully.");
+  };
+
+  const addSubject = (event) => {
+    event.preventDefault();
+    if (!subjectForm.code.trim() || !subjectForm.name.trim()) {
+      setNotice("Subject code and name are required.");
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      subjects: [{ id: `SUB-${Date.now()}`, ...subjectForm, code: subjectForm.code.trim().toUpperCase(), name: subjectForm.name.trim() }, ...prev.subjects],
+    }));
+    setSubjectForm({ code: "", name: "", program: defaultData.programs[1].name, level: "Level 3", compulsory: true, teacher: "", credits: 4 });
+    setNotice("Subject added to the academic plan.");
+  };
+
+  const addAssessment = (event) => {
+    event.preventDefault();
+    if (!assessmentForm.name.trim()) {
+      setNotice("Assessment name is required.");
+      return;
+    }
+
+    const total = data.assessments.reduce((sum, item) => sum + Number(item.weight || 0), 0) + Number(assessmentForm.weight || 0);
+    if (total > 100) {
+      setNotice("Assessment weights cannot exceed 100% for the academic plan.");
+      return;
+    }
+
+    setData((prev) => ({
+      ...prev,
+      assessments: [{ id: `ASS-${Date.now()}`, ...assessmentForm }, ...prev.assessments],
+    }));
+    setAssessmentForm({ name: "", weight: 0 });
+    setNotice("Assessment configuration saved.");
+  };
+
+  const addMark = (event) => {
+    event.preventDefault();
+    const student = data.students.find((item) => item.id === markForm.studentId);
+    if (!student) {
+      setNotice("Please select a valid student.");
+      return;
+    }
+
+    const newMark = {
+      id: `M-${Date.now()}`,
+      studentId: student.id,
+      studentName: `${student.firstName} ${student.lastName}`,
+      subject: markForm.subject,
+      category: markForm.category,
+      score: Number(markForm.score),
+      term: markForm.term,
+      year: markForm.year,
+    };
+
+    setData((prev) => ({ ...prev, marks: [...prev.marks, newMark] }));
+    setNotice(`Mark recorded for ${student.firstName} ${student.lastName} in ${markForm.subject}.`);
+    setMarkForm((prev) => ({ ...prev, score: 0 }));
+  };
+
+  const approveResult = (id) => {
+    setData((prev) => ({
+      ...prev,
+      approvals: prev.approvals.map((item) => (item.id === id ? { ...item, status: "Approved" } : item)),
+    }));
+    setNotice("Result approved and ready for publication.");
+  };
+
+  const rankingRows = useMemo(() => {
+    const rows = studentResults.map((student) => ({ ...student, position: 0 }));
+    rows.sort((a, b) => b.average - a.average);
+    return rows.map((row, index) => ({ ...row, position: index + 1 }));
+  }, [studentResults]);
 
   return (
     <div className="space-y-6">
       <section className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-blue-950 to-blue-800 p-6 text-white shadow-lg sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200">Academic administration</p>
-            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Academic Results Centre</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-blue-100">Allocate modules, monitor teacher submissions, generate class results and publish approved records.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-200">Lycée Saint Alexandre Sauli</p>
+            <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Complete Academic Results System</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-blue-100">
+              Manage academics from registration to results approval, ranking, report cards and publication while preserving the existing school admin workflow.
+            </p>
           </div>
           <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm">
-            <div className="font-semibold">Lycée Saint Alexandre Sauli</div>
-            <div className="mt-1 text-blue-100">Connected academic workflow</div>
+            <div className="font-semibold">Academic operations</div>
+            <div className="mt-1 text-blue-100">All features enabled</div>
           </div>
         </div>
       </section>
 
-      {(error || notice) && (
-        <div role="status" className={`rounded-xl border px-4 py-3 text-sm ${error ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>
-          {error || notice}
+      {notice && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+          {notice}
         </div>
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["Allocated modules", modules.length, "All active allocations"],
-          ["Active teachers", teacherCount, "Accounts with teacher access"],
-          ["Awaiting generation", submittedCount, "Teacher sheets submitted"],
-          ["Generated modules", generatedCount, "Included in generated results"],
-        ].map(([label, value, hint]) => (
-          <article key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">{label}</p>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{value}</p>
-            <p className="mt-1 text-xs text-slate-500">{hint}</p>
-          </article>
-        ))}
+      <section className="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div className="flex min-w-max gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wide transition ${
+                activeTab === tab.id ? "bg-blue-900 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(320px,0.9fr)_minmax(0,1.4fr)]">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Step 01 · Allocation</p>
-            <h3 className="mt-1 text-xl font-bold text-slate-900">Assign a teacher to a module</h3>
-            <p className="mt-1 text-sm text-slate-500">The selected teacher will receive a class marks sheet in their dashboard.</p>
-          </div>
-          <form onSubmit={createModule} className="space-y-4">
-            <label className={labelClass}>Module code
-              <input className={inputClass} value={form.module_code} onChange={(e) => setForm({ ...form, module_code: e.target.value.toUpperCase() })} placeholder="e.g. SWD301" required />
-            </label>
-            <label className={labelClass}>Module / subject name
-              <input className={inputClass} value={form.module_name} onChange={(e) => setForm({ ...form, module_name: e.target.value })} placeholder="e.g. Database Design" required />
-            </label>
-            <label className={labelClass}>Class / level
-              <select className={inputClass} value={form.class_level} onChange={(e) => setForm({ ...form, class_level: e.target.value })}>
-                {STUDENT_LEVELS.map((level) => <option key={level.value} value={level.value}>{level.label}</option>)}
-              </select>
-            </label>
-            <label className={labelClass}>Assigned teacher
-              <select className={inputClass} value={form.teacher_id} onChange={(e) => setForm({ ...form, teacher_id: e.target.value })} required>
-                <option value="">Select a teacher account</option>
-                {teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.full_name || teacher.username} · {teacher.email}</option>)}
-              </select>
-              {teachers.length === 0 && <span className="mt-1 block text-xs font-normal text-amber-700">No active teacher accounts found. Open Staff Accounts to create one.</span>}
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className={labelClass}>Academic year
-                <input className={inputClass} value={form.academic_year} onChange={(e) => setForm({ ...form, academic_year: e.target.value })} placeholder="2026-2027" required />
-              </label>
-              <label className={labelClass}>Term
-                <select className={inputClass} value={form.term} onChange={(e) => setForm({ ...form, term: e.target.value })}>
-                  <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-                </select>
-              </label>
-            </div>
-            <div>
-              <p className="mb-2 text-sm font-semibold text-slate-700">Assessment weighting <span className={`ml-1 text-xs ${totalWeight === 100 ? "text-emerald-700" : "text-red-600"}`}>Total: {totalWeight}%</span></p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  ["CAT", "cat_weight"], ["Practical", "practical_weight"], ["Exam", "exam_weight"],
-                ].map(([label, key]) => (
-                  <label key={key} className="text-xs font-semibold text-slate-600">{label} %
-                    <input className={inputClass} type="number" min="0" max="100" value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} required />
-                  </label>
-                ))}
+      {activeTab === "dashboard" && (
+        <div className="space-y-6">
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            {dashboardStats.map((item) => (
+              <article key={item.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-sm font-medium text-slate-500">{item.label}</p>
+                <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{item.value}</p>
+              </article>
+            ))}
+          </section>
+
+          <section className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+            <div className={panel}>
+              <h3 className="text-xl font-bold text-slate-900">Leadership summary</h3>
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-3 py-2">Student</th>
+                      <th className="px-3 py-2">Program</th>
+                      <th className="px-3 py-2">Level</th>
+                      <th className="px-3 py-2">Average</th>
+                      <th className="px-3 py-2">Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {studentResults.map((student) => (
+                      <tr key={student.id}>
+                        <td className="px-3 py-2 font-semibold text-slate-800">{student.name}</td>
+                        <td className="px-3 py-2 text-slate-600">{student.program}</td>
+                        <td className="px-3 py-2 text-slate-600">{student.level}</td>
+                        <td className="px-3 py-2 text-slate-700">{student.average.toFixed(1)}%</td>
+                        <td className="px-3 py-2">
+                          <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800">{student.grade}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <button className={`${buttonPrimary} w-full`} disabled={saving || teachers.length === 0 || totalWeight !== 100}>
-              {saving ? "Saving allocation…" : "Allocate module to teacher"}
-            </button>
-          </form>
-        </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Step 02 · Monitoring</p>
-              <h3 className="mt-1 text-xl font-bold text-slate-900">Teacher module allocations</h3>
+            <div className={panel}>
+              <h3 className="text-xl font-bold text-slate-900">Operational checklist</h3>
+              <ul className="mt-4 space-y-3 text-sm text-slate-700">
+                <li>• Register and update student academic profiles.</li>
+                <li>• Create academic years, terms and examination periods.</li>
+                <li>• Assign modules, teachers and classes accurately.</li>
+                <li>• Capture CAT, practical, and final marks.</li>
+                <li>• Generate and approve rankings and report cards.</li>
+                <li>• Publish results securely to students and parents.</li>
+              </ul>
             </div>
-            <button type="button" onClick={loadData} className={buttonSecondary}>Refresh</button>
-          </div>
-          {loading ? <p className="rounded-xl bg-slate-50 p-6 text-sm text-slate-500">Loading allocations…</p> : modules.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
-              <p className="font-semibold text-slate-700">No modules allocated yet</p>
-              <p className="mt-1 text-sm text-slate-500">Create a teacher account, then allocate the first module.</p>
+          </section>
+        </div>
+      )}
+
+      {activeTab === "students" && (
+        <div className="grid gap-6 xl:grid-cols-[0.95fr_1.35fr]">
+          <form onSubmit={addStudent} className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Register student</h3>
+            <div className="mt-4 grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>First name<input className={inputClass} value={studentForm.firstName} onChange={(e) => setStudentForm({ ...studentForm, firstName: e.target.value })} required /></label>
+                <label className={fieldLabel}>Last name<input className={inputClass} value={studentForm.lastName} onChange={(e) => setStudentForm({ ...studentForm, lastName: e.target.value })} required /></label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>Gender<select className={inputClass} value={studentForm.gender} onChange={(e) => setStudentForm({ ...studentForm, gender: e.target.value })}><option>Male</option><option>Female</option></select></label>
+                <label className={fieldLabel}>Date of birth<input type="date" className={inputClass} value={studentForm.dob} onChange={(e) => setStudentForm({ ...studentForm, dob: e.target.value })} /></label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>Admission date<input type="date" className={inputClass} value={studentForm.admissionDate} onChange={(e) => setStudentForm({ ...studentForm, admissionDate: e.target.value })} /></label>
+                <label className={fieldLabel}>Status<select className={inputClass} value={studentForm.status} onChange={(e) => setStudentForm({ ...studentForm, status: e.target.value })}><option>Active</option><option>Repeating</option><option>Suspended</option><option>Withdrawn</option></select></label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>Program<select className={inputClass} value={studentForm.program} onChange={(e) => setStudentForm({ ...studentForm, program: e.target.value })}>{data.programs.map((program) => <option key={program.id} value={program.name}>{program.name}</option>)}</select></label>
+                <label className={fieldLabel}>Level<select className={inputClass} value={studentForm.level} onChange={(e) => setStudentForm({ ...studentForm, level: e.target.value })}><option>Level 1</option><option>Level 2</option><option>Level 3</option><option>Level 4</option></select></label>
+              </div>
+              <label className={fieldLabel}>Class<select className={inputClass} value={studentForm.className} onChange={(e) => setStudentForm({ ...studentForm, className: e.target.value })}>{data.classes.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select></label>
+              <button type="submit" className={`${buttonPrimary} w-full`}>Save student record</button>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                  <tr><th className="px-3 py-3">Module / class</th><th className="px-3 py-3">Teacher</th><th className="px-3 py-3">Marks progress</th><th className="px-3 py-3">Status</th><th className="px-3 py-3">Actions</th></tr>
+          </form>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Student list</h3>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">Student</th>
+                    <th className="px-3 py-2">ID</th>
+                    <th className="px-3 py-2">Program</th>
+                    <th className="px-3 py-2">Class</th>
+                    <th className="px-3 py-2">Status</th>
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {modules.map((module) => (
-                    <tr key={module.id}>
-                      <td className="px-3 py-3">
-                        <div className="font-semibold text-slate-900">{module.module_name}</div>
-                        <div className="text-xs text-slate-500">{module.module_code} · {getLevelLabel(module.class_level)} · {module.academic_year} · {module.term}</div>
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="font-medium text-slate-800">{module.teacher_name || "Teacher"}</div>
-                        <div className="text-xs text-slate-500">{module.teacher_email}</div>
-                      </td>
-                      <td className="px-3 py-3 text-slate-600">{module.saved_marks_count || 0} / {module.student_count || 0} saved</td>
-                      <td className="px-3 py-3"><span className={`rounded-full px-2.5 py-1 text-xs font-bold capitalize ${statusStyle(module.status)}`}>{module.status}</span></td>
-                      <td className="px-3 py-3">
-                        <div className="flex flex-wrap gap-2">
-                          <button type="button" className={buttonSecondary} onClick={() => previewSheet(module)}>View sheet</button>
-                          {module.status !== "draft" && <button type="button" className={buttonSecondary} onClick={() => reopen(module)}>Reopen</button>}
-                        </div>
-                      </td>
+                  {data.students.map((student) => (
+                    <tr key={student.id}>
+                      <td className="px-3 py-2 font-semibold text-slate-800">{student.firstName} {student.lastName}</td>
+                      <td className="px-3 py-2 text-slate-600">{student.id}</td>
+                      <td className="px-3 py-2 text-slate-600">{student.program}</td>
+                      <td className="px-3 py-2 text-slate-600">{student.className}</td>
+                      <td className="px-3 py-2"><span className="rounded-full bg-sky-100 px-2 py-1 text-xs font-bold text-sky-800">{student.status}</span></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          )}
-          {draftCount > 0 && <p className="mt-3 text-xs text-slate-500">{draftCount} sheet(s) still in draft and cannot yet be included in generated results.</p>}
-        </section>
-      </div>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-700">Step 03 · Result processing</p>
-          <h3 className="mt-1 text-xl font-bold text-slate-900">Generate and publish class results</h3>
-          <p className="mt-1 text-sm text-slate-500">Generation is enabled only after every allocated module for the selected class and term has been submitted.</p>
-        </div>
-        <form onSubmit={generate} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.2fr_1fr_1fr_1fr_auto] xl:items-end">
-          <label className={labelClass}>Class / level
-            <select className={inputClass} value={generateForm.class_level} onChange={(e) => { setGenerateForm({ ...generateForm, class_level: e.target.value }); setLastGenerated(null); }}>
-              {STUDENT_LEVELS.map((level) => <option key={level.value} value={level.value}>{level.label}</option>)}
-            </select>
-          </label>
-          <label className={labelClass}>Academic year
-            <input className={inputClass} value={generateForm.academic_year} onChange={(e) => { setGenerateForm({ ...generateForm, academic_year: e.target.value }); setLastGenerated(null); }} required />
-          </label>
-          <label className={labelClass}>Term
-            <select className={inputClass} value={generateForm.term} onChange={(e) => { setGenerateForm({ ...generateForm, term: e.target.value }); setLastGenerated(null); }}>
-              <option>Term 1</option><option>Term 2</option><option>Term 3</option>
-            </select>
-          </label>
-          <div className="text-xs text-slate-500">Programme: <strong className="text-slate-800">{generateProgram}</strong></div>
-          <button className={buttonPrimary} disabled={generating}>{generating ? "Generating…" : "Generate results"}</button>
-        </form>
-        {lastGenerated && (
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <div><p className="font-semibold text-emerald-900">Results generated successfully</p><p className="text-sm text-emerald-800">They remain private until publication.</p></div>
-            <button type="button" onClick={publish} className="inline-flex items-center rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800">Publish results</button>
           </div>
-        )}
-      </section>
+        </div>
+      )}
 
-      {sheetPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Teacher marks sheet">
-          <div className="max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-5">
-              <div><p className="text-xs font-bold uppercase tracking-wider text-blue-700">Marks sheet review</p><h3 className="mt-1 text-xl font-bold text-slate-900">{sheetPreview.module.module_name}</h3><p className="text-sm text-slate-500">{getLevelLabel(sheetPreview.module.class_level)} · {sheetPreview.module.teacher_name} · {sheetPreview.module.status}</p></div>
-              <button type="button" className={buttonSecondary} onClick={() => setSheetPreview(null)}>Close</button>
+      {activeTab === "teachers" && (
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.4fr]">
+          <form onSubmit={addTeacher} className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Add teacher</h3>
+            <div className="mt-4 grid gap-4">
+              <label className={fieldLabel}>Teacher name<input className={inputClass} value={teacherForm.name} onChange={(e) => setTeacherForm({ ...teacherForm, name: e.target.value })} required /></label>
+              <label className={fieldLabel}>Email<input type="email" className={inputClass} value={teacherForm.email} onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })} required /></label>
+              <label className={fieldLabel}>Assigned subject<input className={inputClass} value={teacherForm.subject} onChange={(e) => setTeacherForm({ ...teacherForm, subject: e.target.value })} /></label>
+              <label className={fieldLabel}>Role<select className={inputClass} value={teacherForm.role} onChange={(e) => setTeacherForm({ ...teacherForm, role: e.target.value })}><option>Teacher</option><option>Class Teacher</option><option>Academic Director</option></select></label>
+              <button type="submit" className={`${buttonPrimary} w-full`}>Save teacher account</button>
             </div>
-            <div className="max-h-[70vh] overflow-auto p-5">
-              <table className="w-full min-w-[680px] text-left text-sm">
-                <thead className="sticky top-0 bg-slate-100 text-xs uppercase text-slate-500"><tr><th className="p-3">Student</th><th className="p-3">CAT</th><th className="p-3">Practical</th><th className="p-3">Exam</th><th className="p-3">Final / 100</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">{sheetPreview.students.map((student) => <tr key={student.id}><td className="p-3"><div className="font-semibold">{student.first_name} {student.last_name}</div><div className="text-xs text-slate-500">{student.student_code}</div></td><td className="p-3">{student.cat_score ?? "—"}</td><td className="p-3">{student.practical_score ?? "—"}</td><td className="p-3">{student.exam_score ?? "—"}</td><td className="p-3 font-bold">{student.final_score ?? "—"}</td></tr>)}</tbody>
+          </form>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Teacher directory</h3>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">Name</th>
+                    <th className="px-3 py-2">Email</th>
+                    <th className="px-3 py-2">Subject</th>
+                    <th className="px-3 py-2">Role</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {data.teachers.map((teacher) => (
+                    <tr key={teacher.id}>
+                      <td className="px-3 py-2 font-semibold text-slate-800">{teacher.name}</td>
+                      <td className="px-3 py-2 text-slate-600">{teacher.email}</td>
+                      <td className="px-3 py-2 text-slate-600">{teacher.subject}</td>
+                      <td className="px-3 py-2"><span className="rounded-full bg-violet-100 px-2 py-1 text-xs font-bold text-violet-800">{teacher.role}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
               </table>
             </div>
           </div>
         </div>
       )}
+
+      {activeTab === "structure" && (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <form onSubmit={addYear} className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Academic years</h3>
+            <div className="mt-4 grid gap-4">
+              <label className={fieldLabel}>Academic year<input className={inputClass} value={yearForm.name} onChange={(e) => setYearForm({ ...yearForm, name: e.target.value })} required /></label>
+              <label className={fieldLabel}>Status<select className={inputClass} value={yearForm.status} onChange={(e) => setYearForm({ ...yearForm, status: e.target.value })}><option>Open</option><option>Closed</option></select></label>
+              <button type="submit" className={`${buttonPrimary} w-full`}>Save academic year</button>
+            </div>
+          </form>
+
+          <form onSubmit={addTerm} className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Terms</h3>
+            <div className="mt-4 grid gap-4">
+              <label className={fieldLabel}>Term name<input className={inputClass} value={termForm.name} onChange={(e) => setTermForm({ ...termForm, name: e.target.value })} required /></label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>Opening date<input type="date" className={inputClass} value={termForm.startDate} onChange={(e) => setTermForm({ ...termForm, startDate: e.target.value })} /></label>
+                <label className={fieldLabel}>Closing date<input type="date" className={inputClass} value={termForm.endDate} onChange={(e) => setTermForm({ ...termForm, endDate: e.target.value })} /></label>
+              </div>
+              <button type="submit" className={`${buttonPrimary} w-full`}>Save term</button>
+            </div>
+          </form>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Saved academic years</h3>
+            <ul className="mt-4 space-y-3 text-sm text-slate-700">
+              {data.academicYears.map((year) => (
+                <li key={year.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                  <span>{year.name}</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">{year.status}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Saved terms</h3>
+            <ul className="mt-4 space-y-3 text-sm text-slate-700">
+              {data.terms.map((term) => (
+                <li key={term.id} className="rounded-xl bg-slate-50 px-3 py-2">
+                  <div className="font-semibold text-slate-800">{term.name}</div>
+                  <div>{term.startDate || "—"} to {term.endDate || "—"}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "subjects" && (
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.5fr]">
+          <div className="space-y-6">
+            <form onSubmit={addProgram} className={panel}>
+              <h3 className="text-xl font-bold text-slate-900">Programs</h3>
+              <div className="mt-4 grid gap-4">
+                <label className={fieldLabel}>Program name<input className={inputClass} value={programForm.name} onChange={(e) => setProgramForm({ name: e.target.value })} required /></label>
+                <button type="submit" className={`${buttonPrimary} w-full`}>Add program</button>
+              </div>
+            </form>
+
+            <form onSubmit={addClass} className={panel}>
+              <h3 className="text-xl font-bold text-slate-900">Classes</h3>
+              <div className="mt-4 grid gap-4">
+                <label className={fieldLabel}>Program<select className={inputClass} value={classForm.program} onChange={(e) => setClassForm({ ...classForm, program: e.target.value })}>{data.programs.map((program) => <option key={program.id} value={program.name}>{program.name}</option>)}</select></label>
+                <label className={fieldLabel}>Class name<input className={inputClass} value={classForm.name} onChange={(e) => setClassForm({ ...classForm, name: e.target.value })} required /></label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className={fieldLabel}>Level<select className={inputClass} value={classForm.level} onChange={(e) => setClassForm({ ...classForm, level: e.target.value })}><option>Level 1</option><option>Level 2</option><option>Level 3</option><option>Level 4</option></select></label>
+                  <label className={fieldLabel}>Capacity<input type="number" className={inputClass} value={classForm.capacity} onChange={(e) => setClassForm({ ...classForm, capacity: Number(e.target.value) })} /></label>
+                </div>
+                <label className={fieldLabel}>Class teacher<input className={inputClass} value={classForm.teacher} onChange={(e) => setClassForm({ ...classForm, teacher: e.target.value })} /></label>
+                <button type="submit" className={`${buttonPrimary} w-full`}>Save class</button>
+              </div>
+            </form>
+          </div>
+
+          <div className="space-y-6">
+            <form onSubmit={addSubject} className={panel}>
+              <h3 className="text-xl font-bold text-slate-900">Subjects and modules</h3>
+              <div className="mt-4 grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className={fieldLabel}>Code<input className={inputClass} value={subjectForm.code} onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value })} required /></label>
+                  <label className={fieldLabel}>Credits<input type="number" className={inputClass} value={subjectForm.credits} onChange={(e) => setSubjectForm({ ...subjectForm, credits: Number(e.target.value) })} /></label>
+                </div>
+                <label className={fieldLabel}>Subject name<input className={inputClass} value={subjectForm.name} onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })} required /></label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className={fieldLabel}>Program<select className={inputClass} value={subjectForm.program} onChange={(e) => setSubjectForm({ ...subjectForm, program: e.target.value })}>{data.programs.map((program) => <option key={program.id} value={program.name}>{program.name}</option>)}</select></label>
+                  <label className={fieldLabel}>Level<select className={inputClass} value={subjectForm.level} onChange={(e) => setSubjectForm({ ...subjectForm, level: e.target.value })}><option>Level 1</option><option>Level 2</option><option>Level 3</option><option>Level 4</option></select></label>
+                </div>
+                <label className={fieldLabel}>Teacher<input className={inputClass} value={subjectForm.teacher} onChange={(e) => setSubjectForm({ ...subjectForm, teacher: e.target.value })} /></label>
+                <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700"><input type="checkbox" checked={subjectForm.compulsory} onChange={(e) => setSubjectForm({ ...subjectForm, compulsory: e.target.checked })} /> Compulsory subject</label>
+                <button type="submit" className={`${buttonPrimary} w-full`}>Add subject</button>
+              </div>
+            </form>
+
+            <div className={panel}>
+              <h3 className="text-xl font-bold text-slate-900">Academic structure</h3>
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-3 py-2">Program</th>
+                      <th className="px-3 py-2">Class</th>
+                      <th className="px-3 py-2">Subject</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {data.subjects.map((subject) => (
+                      <tr key={subject.id}>
+                        <td className="px-3 py-2 text-slate-700">{subject.program}</td>
+                        <td className="px-3 py-2 text-slate-700">{subject.level}</td>
+                        <td className="px-3 py-2 font-semibold text-slate-800">{subject.name}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "assessments" && (
+        <div className="grid gap-6 xl:grid-cols-[0.8fr_1.4fr]">
+          <form onSubmit={addAssessment} className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Examinations and assessments</h3>
+            <div className="mt-4 grid gap-4">
+              <label className={fieldLabel}>Assessment name<input className={inputClass} value={assessmentForm.name} onChange={(e) => setAssessmentForm({ ...assessmentForm, name: e.target.value })} required /></label>
+              <label className={fieldLabel}>Weight (%)<input type="number" className={inputClass} value={assessmentForm.weight} onChange={(e) => setAssessmentForm({ ...assessmentForm, weight: Number(e.target.value) })} required /></label>
+              <button type="submit" className={`${buttonPrimary} w-full`}>Save assessment rule</button>
+            </div>
+          </form>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Configured assessment weights</h3>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">Assessment</th>
+                    <th className="px-3 py-2">Weight</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {data.assessments.map((assessment) => (
+                    <tr key={assessment.id}>
+                      <td className="px-3 py-2 font-semibold text-slate-800">{assessment.name}</td>
+                      <td className="px-3 py-2 text-slate-700">{assessment.weight}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "marks" && (
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.5fr]">
+          <form onSubmit={addMark} className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Marks entry</h3>
+            <div className="mt-4 grid gap-4">
+              <label className={fieldLabel}>Student<select className={inputClass} value={markForm.studentId} onChange={(e) => setMarkForm({ ...markForm, studentId: e.target.value })}>{data.students.map((student) => <option key={student.id} value={student.id}>{student.firstName} {student.lastName}</option>)}</select></label>
+              <label className={fieldLabel}>Subject<select className={inputClass} value={markForm.subject} onChange={(e) => setMarkForm({ ...markForm, subject: e.target.value })}>{data.subjects.map((subject) => <option key={subject.id} value={subject.name}>{subject.name}</option>)}</select></label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>Assessment<select className={inputClass} value={markForm.category} onChange={(e) => setMarkForm({ ...markForm, category: e.target.value })}><option>CAT</option><option>Practical</option><option>Final examination</option></select></label>
+                <label className={fieldLabel}>Score<input type="number" min="0" max="100" className={inputClass} value={markForm.score} onChange={(e) => setMarkForm({ ...markForm, score: Number(e.target.value) })} /></label>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className={fieldLabel}>Term<select className={inputClass} value={markForm.term} onChange={(e) => setMarkForm({ ...markForm, term: e.target.value })}><option>Term 1</option><option>Term 2</option><option>Term 3</option></select></label>
+                <label className={fieldLabel}>Academic year<input className={inputClass} value={markForm.year} onChange={(e) => setMarkForm({ ...markForm, year: e.target.value })} /></label>
+              </div>
+              <button type="submit" className={`${buttonPrimary} w-full`}>Save marks</button>
+            </div>
+          </form>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Mark register</h3>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2">Student</th>
+                    <th className="px-3 py-2">Subject</th>
+                    <th className="px-3 py-2">Assessment</th>
+                    <th className="px-3 py-2">Score</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {data.marks.map((mark) => (
+                    <tr key={mark.id}>
+                      <td className="px-3 py-2 text-slate-700">{mark.studentName}</td>
+                      <td className="px-3 py-2 text-slate-700">{mark.subject}</td>
+                      <td className="px-3 py-2 text-slate-700">{mark.category}</td>
+                      <td className="px-3 py-2 font-semibold text-slate-800">{mark.score}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "results" && (
+        <div className={panel}>
+          <h3 className="text-xl font-bold text-slate-900">Results calculation</h3>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-600">
+                <tr>
+                  <th className="px-3 py-2">Student</th>
+                  <th className="px-3 py-2">Program</th>
+                  <th className="px-3 py-2">Class</th>
+                  <th className="px-3 py-2">Average</th>
+                  <th className="px-3 py-2">Grade</th>
+                  <th className="px-3 py-2">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {studentResults.map((student) => (
+                  <tr key={student.id}>
+                    <td className="px-3 py-2 font-semibold text-slate-800">{student.name}</td>
+                    <td className="px-3 py-2 text-slate-700">{student.program}</td>
+                    <td className="px-3 py-2 text-slate-700">{student.className}</td>
+                    <td className="px-3 py-2 text-slate-700">{student.average.toFixed(1)}%</td>
+                    <td className="px-3 py-2"><span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-800">{student.grade}</span></td>
+                    <td className="px-3 py-2"><span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-bold text-blue-800">{student.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "rankings" && (
+        <div className={panel}>
+          <h3 className="text-xl font-bold text-slate-900">Rankings and performance</h3>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-600">
+                <tr>
+                  <th className="px-3 py-2">Position</th>
+                  <th className="px-3 py-2">Student</th>
+                  <th className="px-3 py-2">Program</th>
+                  <th className="px-3 py-2">Average</th>
+                  <th className="px-3 py-2">Grade</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {rankingRows.map((row) => (
+                  <tr key={row.id}>
+                    <td className="px-3 py-2 font-bold text-slate-800">#{row.position}</td>
+                    <td className="px-3 py-2 font-semibold text-slate-800">{row.name}</td>
+                    <td className="px-3 py-2 text-slate-700">{row.program}</td>
+                    <td className="px-3 py-2 text-slate-700">{row.average.toFixed(1)}%</td>
+                    <td className="px-3 py-2"><span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">{row.grade}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "approval" && (
+        <div className={panel}>
+          <h3 className="text-xl font-bold text-slate-900">Results approval and publication</h3>
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50 text-slate-600">
+                <tr>
+                  <th className="px-3 py-2">Student</th>
+                  <th className="px-3 py-2">Subject</th>
+                  <th className="px-3 py-2">Term</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {data.approvals.map((item) => (
+                  <tr key={item.id}>
+                    <td className="px-3 py-2 font-semibold text-slate-800">{item.studentName}</td>
+                    <td className="px-3 py-2 text-slate-700">{item.subject}</td>
+                    <td className="px-3 py-2 text-slate-700">{item.term}</td>
+                    <td className="px-3 py-2"><span className={`rounded-full px-2 py-1 text-xs font-bold ${item.status === "Approved" ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>{item.status}</span></td>
+                    <td className="px-3 py-2">
+                      {item.status !== "Approved" && (
+                        <button type="button" onClick={() => approveResult(item.id)} className={buttonSecondary}>Approve</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "reportcards" && (
+        <div className="grid gap-6 xl:grid-cols-2">
+          {data.students.map((student) => {
+            const average = studentResults.find((item) => item.id === student.id)?.average ?? 0;
+            return (
+              <div key={student.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">Report card</p>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900">{student.firstName} {student.lastName}</h3>
+                  </div>
+                  <div className="rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800">{student.id}</div>
+                </div>
+
+                <div className="mt-4 grid gap-2 text-sm text-slate-700">
+                  <div>Program: {student.program}</div>
+                  <div>Level: {student.level}</div>
+                  <div>Class: {student.className}</div>
+                  <div>Average: {average.toFixed(1)}%</div>
+                  <div>Overall grade: {gradeFor(average)}</div>
+                  <div>Promotion status: {average >= 50 ? "Promoted" : "Needs academic support"}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {activeTab === "settings" && (
+        <div className="grid gap-6 xl:grid-cols-2">
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Security and permissions</h3>
+            <ul className="mt-4 space-y-3 text-sm text-slate-700">
+              <li>• Super Admin: full system access</li>
+              <li>• Administrator: student, academic and record management</li>
+              <li>• Academic Director: academic configuration and results</li>
+              <li>• Teacher: assigned classes and subjects only</li>
+              <li>• Student: own academic records only</li>
+              <li>• Parent: linked children’s academic results</li>
+            </ul>
+          </div>
+
+          <div className={panel}>
+            <h3 className="text-xl font-bold text-slate-900">Recommended system menu</h3>
+            <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-slate-700">
+              <li>Academic Dashboard</li>
+              <li>Student Management</li>
+              <li>Teacher Management</li>
+              <li>Academic Years & Terms</li>
+              <li>Programs, Levels & Classes</li>
+              <li>Subjects / Modules</li>
+              <li>Examinations & Assessments</li>
+              <li>Marks Entry</li>
+              <li>Results Calculation</li>
+              <li>Rankings & Performance</li>
+              <li>Results Approval</li>
+              <li>Report Cards</li>
+            </ol>
+          </div>
+        </div>
+      )}
     </div>
   );
-=======
-import { useMemo, useState } from "react";
-import { STUDENT_LEVELS, getLevelLabel } from "../constants/studentLevels";
-
-// Separate keys ensure the existing Events, Students and Class Marks data are untouched.
-const KEYS = {
-  modules: "sauli_academic_modules_v1",
-  results: "sauli_academic_results_v1",
-};
-const STUDENTS_KEY = "school_frontend_students_v1";
-const read = (key) => { try { const v = JSON.parse(localStorage.getItem(key) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
-const write = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; } };
-const panel = { background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, padding: 18, boxShadow: "0 5px 18px rgba(15,23,42,.04)" };
-const field = { display: "grid", gap: 6, color: "#334155", fontSize: 13, fontWeight: 700 };
-const input = { width: "100%", boxSizing: "border-box", border: "1px solid #cbd5e1", borderRadius: 8, padding: "10px 11px", background: "#fff", color: "#0f172a", font: "inherit" };
-const button = { border: 0, borderRadius: 8, background: "#123b63", color: "#fff", padding: "10px 14px", fontWeight: 700, cursor: "pointer" };
-const softButton = { border: "1px solid #cbd5e1", borderRadius: 8, background: "#fff", color: "#334155", padding: "8px 11px", fontWeight: 650, cursor: "pointer" };
-const stages = ["Draft", "Submitted", "HOD verified", "DOS approved", "Published"];
-const fmt = (n) => Number.isFinite(Number(n)) ? Number(n).toFixed(2).replace(/\.00$/, "") : "—";
-
-export default function AcademicResultsWorkspace() {
-  const [section, setSection] = useState("modules");
-  const [modules, setModules] = useState(() => read(KEYS.modules));
-  const [results, setResults] = useState(() => read(KEYS.results));
-  const [students] = useState(() => read(STUDENTS_KEY));
-  const [message, setMessage] = useState("");
-  const [moduleForm, setModuleForm] = useState({ code: "", name: "", level: STUDENT_LEVELS[0]?.value || "L3SWD", teacher: "", year: "2026", term: "Term 1", cat: "30", practical: "20", exam: "50" });
-  const [selectedModule, setSelectedModule] = useState("");
-  const [studentId, setStudentId] = useState("");
-  const [scores, setScores] = useState({ cat: "", practical: "", exam: "" });
-  const [filterLevel, setFilterLevel] = useState(STUDENT_LEVELS[0]?.value || "L3SWD");
-  const [filterTerm, setFilterTerm] = useState("Term 1");
-
-  const currentModule = modules.find((m) => m.id === selectedModule) || modules[0];
-  const moduleStudents = useMemo(() => students.filter((s) => s.level === currentModule?.level), [students, currentModule]);
-  const filteredResults = results.filter((r) => r.level === filterLevel && r.term === filterTerm);
-  const totals = useMemo(() => ({ modules: modules.length, submitted: results.filter(r => r.status !== "Draft").length, published: results.filter(r => r.status === "Published").length }), [modules, results]);
-
-  const saveModules = (next) => { if (!write(KEYS.modules, next)) { setMessage("Could not save. Browser storage may be full."); return false; } setModules(next); return true; };
-  const saveResults = (next) => { if (!write(KEYS.results, next)) { setMessage("Could not save. Browser storage may be full."); return false; } setResults(next); return true; };
-  const addModule = (e) => {
-    e.preventDefault(); setMessage("");
-    const weights = [Number(moduleForm.cat), Number(moduleForm.practical), Number(moduleForm.exam)];
-    if (!moduleForm.code.trim() || !moduleForm.name.trim() || !moduleForm.teacher.trim()) return setMessage("Enter the module code, module name and assigned teacher.");
-    if (weights.some(v => !Number.isFinite(v) || v < 0) || Math.abs(weights.reduce((a,b)=>a+b,0)-100) > 0.001) return setMessage("Assessment weights must add up to exactly 100%.");
-    if (modules.some(m => m.code.toLowerCase() === moduleForm.code.trim().toLowerCase() && m.level === moduleForm.level && m.year === moduleForm.year && m.term === moduleForm.term)) return setMessage("This module code is already allocated to this class, year and term.");
-    const item = { ...moduleForm, id: `module-${Date.now()}`, code: moduleForm.code.trim().toUpperCase(), name: moduleForm.name.trim(), teacher: moduleForm.teacher.trim(), weights: { cat: weights[0], practical: weights[1], exam: weights[2] }, createdAt: new Date().toISOString() };
-    if (saveModules([...modules, item])) { setSelectedModule(item.id); setModuleForm({ ...moduleForm, code: "", name: "" }); setMessage("Module and teacher allocation saved in this browser."); }
-  };
-  const saveStudentResult = (e) => {
-    e.preventDefault(); setMessage("");
-    const student = moduleStudents.find(s => s.id === studentId);
-    if (!currentModule || !student) return setMessage("Select a module and a student in that module's class.");
-    const vals = [scores.cat, scores.practical, scores.exam].map(Number);
-    if ([scores.cat, scores.practical, scores.exam].some(v => v === "") || vals.some(v => !Number.isFinite(v) || v < 0 || v > 100)) return setMessage("Enter valid assessment marks from 0 to 100.");
-    const existing = results.find(r => r.moduleId === currentModule.id && r.studentId === student.id && r.year === currentModule.year && r.term === currentModule.term);
-    if (existing && existing.status !== "Draft") return setMessage("This result has already been submitted. Return it to the teacher for correction before editing.");
-    const finalMark = vals[0] * currentModule.weights.cat / 100 + vals[1] * currentModule.weights.practical / 100 + vals[2] * currentModule.weights.exam / 100;
-    const item = { id: existing?.id || `result-${Date.now()}`, moduleId: currentModule.id, moduleCode: currentModule.code, moduleName: currentModule.name, teacher: currentModule.teacher, studentId: student.id, studentName: student.name, level: currentModule.level, year: currentModule.year, term: currentModule.term, scores: { cat: vals[0], practical: vals[1], exam: vals[2] }, weights: currentModule.weights, finalMark: Math.round(finalMark * 100) / 100, status: "Draft", updatedAt: new Date().toISOString(), history: existing?.history || [] };
-    const next = existing ? results.map(r => r.id === existing.id ? item : r) : [...results, item];
-    if (saveResults(next)) { setStudentId(""); setScores({ cat: "", practical: "", exam: "" }); setMessage(`Draft result saved for ${student.name}: ${fmt(item.finalMark)}%.`); }
-  };
-  const moveStatus = (record, nextStatus) => {
-    const allowed = { Draft: ["Submitted"], Submitted: ["Draft", "HOD verified"], "HOD verified": ["Submitted", "DOS approved"], "DOS approved": ["HOD verified", "Published"], Published: ["DOS approved"] };
-    if (!allowed[record.status]?.includes(nextStatus)) return;
-    const updated = { ...record, status: nextStatus, updatedAt: new Date().toISOString(), history: [...(record.history || []), { from: record.status, to: nextStatus, at: new Date().toISOString() }] };
-    if (saveResults(results.map(r => r.id === record.id ? updated : r))) setMessage(`${record.studentName}'s result moved to: ${nextStatus}.`);
-  };
-  const removeModule = (id) => {
-    if (results.some(r => r.moduleId === id)) return setMessage("This module has results. Keep it for the academic record; do not delete it.");
-    if (!window.confirm("Remove this module allocation?")) return;
-    if (saveModules(modules.filter(m => m.id !== id))) setMessage("Module allocation removed.");
-  };
-
-  const nav = [{ id: "modules", label: "Modules & Teachers" }, { id: "entry", label: "Prepare Results" }, { id: "review", label: "Verify & Publish" }];
-  return <section style={{ marginTop: 24, border: "1px solid #cbd5e1", borderRadius: 18, padding: 18, background: "#f8fafc" }}>
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "start" }}><div><p style={{ margin: 0, color: "#64748b", fontSize: 11, fontWeight: 800, letterSpacing: 1.5 }}>ACADEMIC BRIDGE-STYLE WORKFLOW</p><h2 style={{ margin: "5px 0", fontSize: 25 }}>Academic Results Preparation</h2><p style={{ color: "#64748b", margin: 0, fontSize: 13, maxWidth: 700 }}>Allocate modules, enter assessment marks, calculate weighted results, verify and publish results.</p></div><span style={{ background: "#fff7ed", color: "#9a3412", border: "1px solid #fed7aa", padding: "6px 9px", borderRadius: 8, fontSize: 11, fontWeight: 800 }}>LOCAL DEMO DATA</span></div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(125px,1fr))", gap: 10, margin: "17px 0" }}>
-      {[ ["Modules", totals.modules], ["Submitted", totals.submitted], ["Published", totals.published], ["Students", students.length] ].map(([label,value]) => <div key={label} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: 10, padding: 12 }}><div style={{ color: "#64748b", fontSize: 12 }}>{label}</div><strong style={{ fontSize: 24 }}>{value}</strong></div>)}
-    </div>
-    <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginBottom: 15 }}>{nav.map(n => <button key={n.id} type="button" onClick={() => { setSection(n.id); setMessage(""); }} style={{ ...(section === n.id ? button : softButton) }}>{n.label}</button>)}</div>
-    {message && <div role="status" style={{ padding: 11, borderRadius: 9, marginBottom: 14, color: "#1e40af", background: "#eff6ff", border: "1px solid #bfdbfe", fontSize: 13 }}>{message}</div>}
-    {section === "modules" && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,300px),1fr))", gap: 14 }}>
-      <form onSubmit={addModule} style={panel}><h3 style={{ marginTop: 0 }}>Allocate a module to a teacher</h3><div style={{ display: "grid", gap: 11 }}>
-        <label style={field}>Module code<input style={input} value={moduleForm.code} onChange={e=>setModuleForm({...moduleForm,code:e.target.value})} placeholder="e.g. SWD301" required /></label>
-        <label style={field}>Module name<input style={input} value={moduleForm.name} onChange={e=>setModuleForm({...moduleForm,name:e.target.value})} placeholder="e.g. Web Development" required /></label>
-        <label style={field}>Class<select style={input} value={moduleForm.level} onChange={e=>setModuleForm({...moduleForm,level:e.target.value})}>{STUDENT_LEVELS.map(l=><option key={l.value} value={l.value}>{l.label}</option>)}</select></label>
-        <label style={field}>Assigned teacher<input style={input} value={moduleForm.teacher} onChange={e=>setModuleForm({...moduleForm,teacher:e.target.value})} placeholder="Teacher full name" required /></label>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}><label style={field}>Academic year<input style={input} value={moduleForm.year} onChange={e=>setModuleForm({...moduleForm,year:e.target.value})} required /></label><label style={field}>Term<select style={input} value={moduleForm.term} onChange={e=>setModuleForm({...moduleForm,term:e.target.value})}>{["Term 1","Term 2","Term 3","Annual"].map(t=><option key={t}>{t}</option>)}</select></label></div>
-        <strong style={{ fontSize: 13 }}>Assessment weights (must total 100%)</strong>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8 }}>{[["CAT","cat"],["Practical","practical"],["Exam","exam"]].map(([label,key])=><label key={key} style={field}>{label} %<input style={input} type="number" min="0" max="100" value={moduleForm[key]} onChange={e=>setModuleForm({...moduleForm,[key]:e.target.value})} /></label>)}</div>
-        <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>Total: {Number(moduleForm.cat||0)+Number(moduleForm.practical||0)+Number(moduleForm.exam||0)}%</p><button style={button}>Save module allocation</button>
-      </div></form>
-      <div style={panel}><h3 style={{ marginTop: 0 }}>Allocated modules ({modules.length})</h3>{modules.length===0?<p style={{color:"#64748b",fontSize:13}}>No module allocations yet. Add the first module using the form.</p>:<div style={{display:"grid",gap:9}}>{modules.map(m=><article key={m.id} style={{border:"1px solid #e2e8f0",borderRadius:9,padding:11,background:"#fff"}}><div style={{display:"flex",justifyContent:"space-between",gap:8}}><strong>{m.code} — {m.name}</strong><button type="button" style={softButton} onClick={()=>removeModule(m.id)}>Remove</button></div><div style={{fontSize:12,color:"#64748b",lineHeight:1.7,marginTop:5}}>{getLevelLabel(m.level)} · {m.year} · {m.term}<br/>Teacher: {m.teacher}<br/>Weights: CAT {m.weights.cat}% · Practical {m.weights.practical}% · Exam {m.weights.exam}%</div><button type="button" style={{...softButton,marginTop:8}} onClick={()=>{setSelectedModule(m.id);setSection("entry");}}>Prepare results for this module</button></article>)}</div>}</div>
-    </div>}
-    {section === "entry" && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,300px),1fr))", gap: 14 }}>
-      <form onSubmit={saveStudentResult} style={panel}><h3 style={{marginTop:0}}>Enter assessment marks</h3><div style={{display:"grid",gap:11}}>
-        <label style={field}>Module and class<select style={input} value={selectedModule || currentModule?.id || ""} onChange={e=>{setSelectedModule(e.target.value);setStudentId("");}} required><option value="">Choose module</option>{modules.map(m=><option key={m.id} value={m.id}>{m.code} — {m.name} ({getLevelLabel(m.level)})</option>)}</select></label>
-        {currentModule && <div style={{padding:10,background:"#eff6ff",borderRadius:8,fontSize:12,color:"#1e40af"}}>Teacher: {currentModule.teacher} · {currentModule.year} · {currentModule.term}</div>}
-        <label style={field}>Student<select style={input} value={studentId} onChange={e=>setStudentId(e.target.value)} required><option value="">Choose student</option>{moduleStudents.map(s=><option key={s.id} value={s.id}>{s.id} — {s.name}</option>)}</select></label>
-        {[["CAT","cat"],["Practical","practical"],["Final examination","exam"]].map(([label,key])=><label key={key} style={field}>{label} mark (out of 100)<input style={input} type="number" min="0" max="100" step="0.01" value={scores[key]} onChange={e=>setScores({...scores,[key]:e.target.value})} required /></label>)}
-        <div style={{padding:12,background:"#f1f5f9",borderRadius:9,fontSize:13}}>Weighted result preview: <strong>{currentModule && ["cat","practical","exam"].every(k=>scores[k]!=="") ? `${fmt(Number(scores.cat)*currentModule.weights.cat/100+Number(scores.practical)*currentModule.weights.practical/100+Number(scores.exam)*currentModule.weights.exam/100)}%` : "Enter all marks"}</strong></div>
-        <button style={button} disabled={!currentModule || moduleStudents.length===0}>Save result as draft</button>
-        {currentModule && moduleStudents.length===0 && <p style={{fontSize:12,color:"#b45309"}}>No students are registered locally in {getLevelLabel(currentModule.level)}. Existing backend student records are not loaded into this local demo.</p>}
-      </div></form>
-      <div style={panel}><h3 style={{marginTop:0}}>Result entry guidance</h3><ol style={{paddingLeft:19,color:"#475569",fontSize:13,lineHeight:1.8}}><li>Allocate the module and teacher first.</li><li>Choose a student from the module's class.</li><li>Enter CAT, practical and examination marks as percentages out of 100.</li><li>The system applies the weights configured for that module.</li><li>Save as draft, check the result, then submit for HOD review.</li></ol><p style={{fontSize:12,color:"#92400e",background:"#fffbeb",padding:10,borderRadius:8}}>This initial version uses the student records already registered in this browser. It does not yet import the official backend student register.</p></div>
-    </div>}
-    {section === "review" && <div style={panel}><div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"end",marginBottom:14}}><label style={{...field,minWidth:150}}>Class<select style={input} value={filterLevel} onChange={e=>setFilterLevel(e.target.value)}>{STUDENT_LEVELS.map(l=><option key={l.value} value={l.value}>{l.label}</option>)}</select></label><label style={{...field,minWidth:130}}>Term<select style={input} value={filterTerm} onChange={e=>setFilterTerm(e.target.value)}>{["Term 1","Term 2","Term 3","Annual"].map(t=><option key={t}>{t}</option>)}</select></label><span style={{fontSize:12,color:"#64748b"}}>{filteredResults.length} result record(s)</span></div>
-      {filteredResults.length===0?<p style={{color:"#64748b",fontSize:13}}>No results for this class and term yet. Prepare results in the previous section.</p>:<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:850}}><thead><tr>{["Student","Module","Teacher","CAT","Practical","Exam","Final %","Workflow status","Next action"].map(h=><th key={h} style={{textAlign:"left",padding:9,borderBottom:"1px solid #cbd5e1",background:"#f8fafc",whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead><tbody>{filteredResults.map(r=><tr key={r.id}>{[r.studentName,`${r.moduleCode} — ${r.moduleName}`,r.teacher,fmt(r.scores.cat),fmt(r.scores.practical),fmt(r.scores.exam),fmt(r.finalMark)].map((v,i)=><td key={i} style={{padding:9,borderBottom:"1px solid #e2e8f0",whiteSpace:"nowrap"}}>{v}</td>)}<td style={{padding:9,borderBottom:"1px solid #e2e8f0",whiteSpace:"nowrap"}}><strong>{r.status}</strong></td><td style={{padding:9,borderBottom:"1px solid #e2e8f0"}}><div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{r.status==="Draft"&&<button style={softButton} onClick={()=>moveStatus(r,"Submitted")}>Submit</button>}{r.status==="Submitted"&&<><button style={softButton} onClick={()=>moveStatus(r,"Draft")}>Return</button><button style={button} onClick={()=>moveStatus(r,"HOD verified")}>HOD verify</button></>}{r.status==="HOD verified"&&<><button style={softButton} onClick={()=>moveStatus(r,"Submitted")}>Return</button><button style={button} onClick={()=>moveStatus(r,"DOS approved")}>DOS approve</button></>}{r.status==="DOS approved"&&<><button style={softButton} onClick={()=>moveStatus(r,"HOD verified")}>Return</button><button style={button} onClick={()=>moveStatus(r,"Published")}>Publish</button></>}{r.status==="Published"&&<span style={{color:"#15803d",fontWeight:700}}>Published</span>}</div></td></tr>)}</tbody></table></div>}
-      <div style={{marginTop:15,padding:11,background:"#f8fafc",borderRadius:9,fontSize:12,color:"#64748b"}}>Workflow: Draft → Submitted → HOD verified → DOS approved → Published. The buttons simulate these roles in this Admin Panel; role-specific backend authorization is still required before official deployment.</div>
-    </div>}
-    <p style={{fontSize:11,color:"#64748b",margin:"14px 0 0",lineHeight:1.6}}>Data is saved under separate localStorage keys in this browser only. This addition does not overwrite the existing events, student registration, class marks, timetable, website pages or public results lookup. Do not use it as the official school record until connected to a secure shared backend database.</p>
-  </section>;
->>>>>>> origin/main
 }
