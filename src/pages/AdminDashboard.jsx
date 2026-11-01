@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import RichTextEditor from "../components/RichTextEditor";
 import { richTextToPlainText } from "../utils/richText";
 import StudentResultsManager from "./StudentResultsManager";
+import SchoolOperationsWorkspace from "./SchoolOperationsWorkspace";
 import { STUDENT_LEVELS } from "../constants/studentLevels";
 import "../styles/admin.css";
 
@@ -18,6 +19,7 @@ const SIDEBAR_ITEMS = [
   { id: "content", label: "Website Content", icon: "bi-file-earmark-text" },
   { id: "students", label: "Students API", icon: "bi-mortarboard" },
   { id: "results", label: "Student Results", icon: "bi-journal-check" },
+  { id: "schoolOperations", label: "Academic Operations", icon: "bi-clipboard2-data" },
   { id: "staff", label: "Staff API", icon: "bi-people" },
   { id: "departments", label: "Departments API", icon: "bi-diagram-3" },
   { id: "timetables", label: "Time Tables API", icon: "bi-calendar3" },
@@ -170,14 +172,14 @@ const RESOURCE_CONFIG = {
     columns: ["id", "type", "value"],
   },
   users: {
-    title: "Admin/Teacher Users",
+    title: "School User Accounts",
     endpoint: "/users",
     idKey: "id",
     fields: [
       { key: "username", label: "Username", type: "text", required: true },
       { key: "email", label: "Email", type: "email", required: true },
       { key: "password", label: "Password", type: "password", required: true, createOnly: true },
-      { key: "role", label: "Role (admin/teacher/secretary/dos)", type: "text", required: true },
+      { key: "role", label: "Role", type: "select", options: ["admin", "teacher", "secretary", "dos", "parent", "student"], required: true },
       { key: "full_name", label: "Full name", type: "text" },
       { key: "phone", label: "Phone", type: "text" },
       { key: "bio", label: "Bio", type: "textarea" },
@@ -1135,7 +1137,7 @@ export default function AdminDashboard() {
   const adminName = user?.full_name?.trim()?.split(/\s+/)[0] || user?.username || "Admin";
   const navGroups = [
     { label: "OVERVIEW", items: SIDEBAR_ITEMS.filter((item) => item.id === "overview") },
-    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "documents", "gallery", "events", "announcements", "content", "students", "results", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
+    { label: "SCHOOL & WEBSITE CONTENT", items: SIDEBAR_ITEMS.filter((item) => ["uploads", "documents", "gallery", "events", "announcements", "content", "students", "results", "schoolOperations", "staff", "departments", "timetables", "schoolWorkers"].includes(item.id)) },
     { label: "MESSAGES & SETTINGS", items: SIDEBAR_ITEMS.filter((item) => ["navigation", "siteSettings", "contactInfo", "messages", "users"].includes(item.id)) },
   ].map((group) => ({
     ...group,
@@ -1746,6 +1748,8 @@ export default function AdminDashboard() {
     );
   } else if (active === "results") {
     content = <StudentResultsManager />;
+  } else if (active === "schoolOperations") {
+    content = <SchoolOperationsWorkspace />;
   } else if (active === "messages") {
     content = <MessagesPanel messages={rows.messages} onUpdateStatus={updateMessageStatus} onDelete={deleteMessage} status={status} />;
   } else if (active === "siteSettings") {
