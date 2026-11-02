@@ -1413,7 +1413,9 @@ export default function AdminDashboard() {
       setEditing(prev => ({ ...prev, [section]: null }));
     } catch (error) {
       const message = !error?.response
-        ? `Cannot reach the API at ${API_BASE_URL}. Start the backend and check its database configuration.`
+        ? (error?.message && error.message !== "Network Error"
+          ? error.message
+          : `No response from the API at ${API_BASE_URL}. Check the network connection and confirm this frontend origin is allowed by backend CORS.`)
         : getApiError(error, `Failed to save ${cfg.title.toLowerCase()}`);
       console.error("[save error]", error?.response?.status, error?.response?.data, payload);
       setStatus(`${message} (status: ${error?.response?.status || 'network'})`);
