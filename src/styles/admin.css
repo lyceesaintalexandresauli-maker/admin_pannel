@@ -5,6 +5,181 @@
   --navbar-button-border: #c8a63e;
 }
 
+.adm-ops,
+.adm-portal {
+  display: grid;
+  gap: 1rem;
+  color: #0f172a;
+}
+
+.adm-ops-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.adm-ops-header h2,
+.adm-portal h1 {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.adm-ops-header p,
+.adm-portal header p {
+  margin: 0.4rem 0 0;
+  color: #64748b;
+}
+
+.adm-ops-kicker {
+  margin: 0;
+  color: #a16207;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.adm-ops-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.adm-ops-tabs button {
+  border: 0;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.adm-ops-tabs button.active {
+  background: #123b63;
+  color: #fff;
+}
+
+.adm-ops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 1rem;
+}
+
+.adm-ops-stat,
+.adm-ops-grid > .adm-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.adm-ops-stat span,
+.adm-ops-grid > .adm-panel span {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.adm-ops-stat strong,
+.adm-ops-grid > .adm-panel strong {
+  color: #123b63;
+  font-size: 1.8rem;
+}
+
+.adm-ops-wide {
+  grid-column: 1 / -1;
+}
+
+.adm-ops-kind {
+  max-width: 420px;
+  margin: 1rem 0;
+}
+
+.adm-ops-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.adm-ops .adm-form {
+  margin: 1rem 0;
+}
+
+.adm-ops .adm-ops-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  padding: 0.6rem 0.7rem;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+}
+
+.adm-ops textarea.adm-ops-input {
+  min-height: 90px;
+}
+
+.adm-ops-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 42px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.adm-ops-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.2rem;
+}
+
+.adm-ops h3 {
+  margin: 1.25rem 0 0.6rem;
+}
+
+.adm-portal {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.adm-portal > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.adm-portal-student h2 {
+  margin-top: 0;
+}
+
+@media (max-width: 680px) {
+  .adm-ops-header,
+  .adm-portal > header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .adm-ops-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .adm-ops-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .adm-portal {
+    padding: 0.75rem;
+  }
+}
+
 .adm-login-shell {
   min-height: 100vh;
   display: flex;
