@@ -176,7 +176,7 @@ export default function SchoolOperationsWorkspace() {
   const [entity, setEntity] = useState("years");
   const [entityForm, setEntityForm] = useState({});
   const [editingEntity, setEditingEntity] = useState(null);
-  const [examForm, setExamForm] = useState({ class_subject_id: "", term_id: "", title: "", type: "cat", weight: 20, max_score: 100 });
+  const [examForm, setExamForm] = useState({ class_subject_id: "", term_id: "", title: "", type: "cat", weight: 20, max_score: 100, exam_date: "" });
   const [selectedExam, setSelectedExam] = useState("");
   const [markData, setMarkData] = useState([]);
   const [results, setResults] = useState([]);
@@ -191,6 +191,7 @@ export default function SchoolOperationsWorkspace() {
   const [reportForm, setReportForm] = useState({ student_id: "", type: "report_card", academic_year: "", term: "" });
   const [importKind, setImportKind] = useState("students");
   const [importFile, setImportFile] = useState(null);
+  const [marksImportFile, setMarksImportFile] = useState(null);
   const [restoreFile, setRestoreFile] = useState(null);
 
   const loadWorkspace = async () => {
@@ -237,7 +238,7 @@ export default function SchoolOperationsWorkspace() {
     if (nextGraduation) setGraduation(nextGraduation);
     if (nextPermissions) setPermissions(nextPermissions);
     if (nextAuditLogs) setAuditLogs(nextAuditLogs);
-    if (nextGradeScale) setGradeScale(nextGradeScale);
+    if (nextGradeScale) setGradeScale(Array.isArray(nextGradeScale.grades) ? nextGradeScale.grades : []);
     if (failures.length) setNotice(`Some records could not be loaded: ${failures.join(" | ")}`);
     setLoading(false);
   };
@@ -246,6 +247,7 @@ export default function SchoolOperationsWorkspace() {
 
   const currentEntityFields = ENTITY_FIELDS[entity];
   const entityRows = structure[entity] || [];
+  const selectedExamRecord = exams.find((exam) => String(exam.id) === String(selectedExam));
   const classSubjectOptions = useMemo(() => (structure.classSubjects || []).map((item) => ({
     ...item,
     name: `${item.class_id} · ${item.subject_id} · ${item.academic_year_id}`,
@@ -316,6 +318,22 @@ export default function SchoolOperationsWorkspace() {
     }
   };
 
+  const importExamMarks = async (event) => {
+    event.preventDefault();
+    if (!selectedExam || !marksImportFile) return;
+    try {
+      const body = new FormData();
+      body.append("file", marksImportFile);
+      const { data } = await api.post(`/academics/exams/${selectedExam}/marks/import`, body);
+      setMarksImportFile(null);
+      event.currentTarget.reset();
+      await loadExamMarks(selectedExam);
+      setNotice(`${data.imported} draft marks imported.`);
+    } catch (error) {
+      reportFailure(error, "Could not import examination marks.");
+    }
+  };
+
   const examAction = async (examId, action) => {
     try {
       const { data } = await api.post(`/academics/exams/${examId}/${action}`);
@@ -329,7 +347,7 @@ export default function SchoolOperationsWorkspace() {
     event.preventDefault();
     try {
       await api.post("/academics/exams", examForm);
-      setExamForm({ class_subject_id: "", term_id: "", title: "", type: "cat", weight: 20, max_score: 100 });
+      setExamForm({ class_subject_id: "", term_id: "", title: "", type: "cat", weight: 20, max_score: 100, exam_date: "" });
       await afterSave("Examination created.");
     } catch (error) {
       reportFailure(error, "Could not create examination.");
@@ -612,7 +630,8 @@ export default function SchoolOperationsWorkspace() {
             <Field field={{ key: "class_subject_id", label: "Class subject", type: "classSubject", required: true }} value={examForm.class_subject_id} structure={resolvedStructure} users={users} onChange={(value) => setExamForm((form) => ({ ...form, class_subject_id: value }))} />
             <Field field={{ key: "term_id", label: "Term", type: "term", required: true }} value={examForm.term_id} structure={{ ...resolvedStructure, terms: structure.terms || [] }} users={users} onChange={(value) => setExamForm((form) => ({ ...form, term_id: value }))} />
             <label className="adm-field"><span>Examination title</span><input className={inputClass} required value={examForm.title} onChange={(event) => setExamForm((form) => ({ ...form, title: event.target.value }))} /></label>
-            <label className="adm-field"><span>Type</span><select className={inputClass} value={examForm.type} onChange={(event) => setExamForm((form) => ({ ...form, type: event.target.value }))}><option value="cat">CAT</option><option value="practical">Practical</option><option value="final">Final</option><option value="other">Other</option></select></label>
+            <label className="adm-field"><span>Type</span><select className={inputClass} value={examForm.type} onChange={(event) => setExamForm((form) => ({ ...form, type: event.target.value }))}><option value="cat">CAT</option><option value="practical">Practical</option><option value="final">Final</option><option value="oral">Oral</option><option value="supplementary">Supplementary</option><option value="other">Other</option></select></label>
+            <label className="adm-field"><span>Examination date</span><input className={inputClass} type="date" value={examForm.exam_date} onChange={(event) => setExamForm((form) => ({ ...form, exam_date: event.target.value }))} /></label>
             <label className="adm-field"><span>Weight (%)</span><input className={inputClass} type="number" min="0.01" max="100" step="0.01" required value={examForm.weight} onChange={(event) => setExamForm((form) => ({ ...form, weight: event.target.value }))} /></label>
             <label className="adm-field"><span>Maximum mark</span><input className={inputClass} type="number" min="0.01" step="0.01" required value={examForm.max_score} onChange={(event) => setExamForm((form) => ({ ...form, max_score: event.target.value }))} /></label>
             <button type="submit" className={buttonClass}>Create examination</button>
@@ -621,10 +640,15 @@ export default function SchoolOperationsWorkspace() {
           {selectedExam && (
             <>
               <form onSubmit={saveMarks}>
-                <div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Student</th><th>Mark</th><th>Absent</th></tr></thead><tbody>
-                  {markData.map((student, index) => <tr key={student.student_id}><td>{student.student_code} · {student.first_name} {student.last_name}</td><td><input className={inputClass} type="number" min="0" step="0.01" disabled={student.is_absent} value={student.score} onChange={(event) => setMarkData((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, score: event.target.value } : row))} /></td><td><input type="checkbox" checked={student.is_absent} onChange={(event) => setMarkData((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, is_absent: event.target.checked } : row))} /></td></tr>)}
+                <div className="adm-table-wrap"><table className="adm-table"><thead><tr><th>Student</th><th>Mark / {selectedExamRecord?.max_score ?? "maximum"}</th><th>Absent for exam</th></tr></thead><tbody>
+                  {markData.map((student, index) => <tr key={student.student_id}><td>{student.student_code} · {student.first_name} {student.last_name}</td><td><input className={inputClass} type="number" min="0" max={selectedExamRecord?.max_score} step="0.01" required={!student.is_absent} disabled={student.is_absent} value={student.score} onChange={(event) => setMarkData((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, score: event.target.value } : row))} /></td><td><input type="checkbox" aria-label={`Mark ${student.first_name} ${student.last_name} absent for this exam`} checked={student.is_absent} onChange={(event) => setMarkData((rows) => rows.map((row, rowIndex) => rowIndex === index ? { ...row, is_absent: event.target.checked, score: event.target.checked ? "" : row.score } : row))} /></td></tr>)}
                 </tbody></table></div>
                 <button className={buttonClass} type="submit">Save marks</button>
+              </form>
+              <form className="adm-form" onSubmit={importExamMarks}>
+                <label className="adm-field"><span>Import marks from CSV or Excel</span><input className={inputClass} type="file" accept=".csv,.xlsx" required onChange={(event) => setMarksImportFile(event.target.files?.[0] || null)} /></label>
+                <p>Use columns <code>student_code</code>, <code>score</code>, and optional <code>is_absent</code>. Imported marks are saved as drafts.</p>
+                <button className="adm-btn adm-btn-light" type="submit" disabled={!marksImportFile}>Import marks</button>
               </form>
               <div className="adm-actions">
                 <button className="adm-btn adm-btn-light" type="button" onClick={() => examAction(selectedExam, "submit")}>Submit for approval</button>
@@ -635,14 +659,14 @@ export default function SchoolOperationsWorkspace() {
             </>
           )}
           <h3>Assessments and publication status</h3>
-          <DataTable rows={exams} columns={["title", "type", "weight", "max_score", "class_name", "subject_name", "term_name", "status"]} />
+          <DataTable rows={exams} columns={["title", "type", "exam_date", "weight", "max_score", "class_name", "subject_name", "term_name", "status"]} />
           <h3>Rankings & calculated results</h3>
           <div className="adm-form">
             <label className="adm-field"><span>Class subject</span><select className={inputClass} value={resultSelection.class_subject_id} onChange={(event) => setResultSelection((value) => ({ ...value, class_subject_id: event.target.value }))}><option value="">Choose class subject</option>{(structure.classSubjects || []).map((item) => <option key={item.id} value={item.id}>{item.class_id} · Subject {item.subject_id} · Year {item.academic_year_id}</option>)}</select></label>
             <label className="adm-field"><span>Term</span><select className={inputClass} value={resultSelection.term_id} onChange={(event) => setResultSelection((value) => ({ ...value, term_id: event.target.value }))}><option value="">Choose term</option>{(structure.terms || []).map((item) => <option key={item.id} value={item.id}>{item.name} · Year {item.academic_year_id}</option>)}</select></label>
             <button type="button" className={buttonClass} onClick={() => loadResults(resultSelection.class_subject_id, resultSelection.term_id)} disabled={!resultSelection.class_subject_id || !resultSelection.term_id}>Calculate rankings</button>
           </div>
-          <DataTable rows={results} columns={["position", "student_code", "first_name", "last_name", "recorded_exams", "total_weight", "percentage", "grade", "passed", "is_published"]} />
+          <DataTable rows={results} columns={["position", "student_code", "first_name", "last_name", "class_name", "program_name", "subject_name", "academic_year", "recorded_exams", "is_complete", "weighted_marks", "total_weight", "percentage", "grade", "grade_remark", "passed", "is_published"]} />
         </div>
       )}
 
