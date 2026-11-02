@@ -54,13 +54,13 @@ const getAverage = (result) => {
   return totals.maximum ? (totals.score / totals.maximum) * 100 : null;
 };
 
-const getGrade = (average) => {
+const getGrade = (average, gradeScale) => {
   if (average === null) return "—";
-  if (average >= 90) return "Wonderful";
-  if (average >= 80) return "Excellent";
-  if (average >= 75) return "Very good";
-  if (average >= 70) return "Good";
-  return "Fail";
+  const band = gradeScale.find((grade) =>
+    average >= Number(grade.minimum_percentage)
+    && average <= Number(grade.maximum_percentage)
+  );
+  return band?.grade || "—";
 };
 
 const formatPosition = (position) => {
@@ -103,6 +103,7 @@ const rankResults = (results) => {
 export default function StudentResultsManager({ isTeacher = false }) {
   const [students, setStudents] = useState([]);
   const [results, setResults] = useState([]);
+  const [gradeScale, setGradeScale] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [subjects, setSubjects] = useState([{ subject_name: "", score: "", max_score: "100" }]);
   const [loading, setLoading] = useState(true);
@@ -130,9 +131,10 @@ export default function StudentResultsManager({ isTeacher = false }) {
     setLoading(true);
     setStatus("");
     try {
-      const [studentRequest, resultRequest] = await Promise.allSettled([
+      const [studentRequest, resultRequest, gradeRequest] = await Promise.allSettled([
         api.get("/students"),
         api.get("/results"),
+        api.get("/school-admin/grade-scale"),
       ]);
       const messages = [];
       if (studentRequest.status === "fulfilled") {
@@ -146,6 +148,13 @@ export default function StudentResultsManager({ isTeacher = false }) {
       } else {
         setResults([]);
         messages.push(`Existing results could not load: ${getApiError(resultRequest.reason, "API unavailable")}`);
+      }
+      if (gradeRequest.status === "fulfilled") {
+        const grades = gradeRequest.value.data?.grades;
+        setGradeScale(Array.isArray(grades) ? grades : []);
+      } else {
+        setGradeScale([]);
+        messages.push(`Grading scale could not load: ${getApiError(gradeRequest.reason, "API unavailable")}`);
       }
       setStatus(messages.join(" "));
     } catch (error) {
@@ -265,7 +274,7 @@ export default function StudentResultsManager({ isTeacher = false }) {
               <span>LIVE RESULT PREVIEW</span>
               <strong>{currentStudent ? `${currentStudent.first_name} ${currentStudent.last_name}` : "Select a student to begin"}</strong>
             </div>
-            {markSummary.average !== null && <span className="adm-results-preview-grade">{getGrade(markSummary.average)}</span>}
+            {markSummary.average !== null && <span className="adm-results-preview-grade">{getGrade(markSummary.average, gradeScale)}</span>}
           </div>
           <div className="adm-results-preview-stats">
             <div><span>Average</span><strong>{markSummary.average === null ? "—" : `${markSummary.average.toFixed(1)}%`}</strong></div>
@@ -369,7 +378,7 @@ export default function StudentResultsManager({ isTeacher = false }) {
                     <td>{result.term}</td>
                     <td>{Number(result.total_marks || 0).toFixed(2)} / {Number(result.maximum_marks || 0).toFixed(2)}</td>
                     <td>{average === null ? "—" : `${average.toFixed(1)}%`}</td>
-                    <td>{getGrade(average)}</td>
+                    <td>{getGrade(average, gradeScale)}</td>
                     <td>{formatPosition(result.calculated_position)}</td>
                     <td>{result.is_published ? "Published" : "Draft"}</td>
                     <td><button className="adm-btn adm-btn-light" onClick={() => editResult(result)} type="button">Edit marks</button></td>
