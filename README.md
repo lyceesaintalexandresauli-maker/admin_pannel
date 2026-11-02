@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 # School Frontend (React)
 
 Responsive React frontend connected to `school-backend`.
@@ -34,10 +30,8 @@ The app uses:
 
 The former `/login` student-portal path redirects to `/results`. Student results are only returned after a parent signs in and an admin publishes them.
 
-For production, configure the same Vite Supabase URL and publishable/anon key in the frontend host before building. Parent account creation also requires the backend's `SUPABASE_SERVICE_ROLE_KEY` and database connection variables; never use or expose the service-role key in the frontend.
-<<<<<<< HEAD
-=======
-=======
+For production, configure the same Vite Supabase URL and publishable/anon key in the frontend host before building. Parent account creation also requires the backend's `SUPABASE_SERVICE_ROLE_KEY` configuration.
+
 # Admin Panel - Lycee Saint Alexandre Sauli de Muhura
 
 A React-based admin panel for managing school operations, integrated with Supabase for authentication and data management.
@@ -96,21 +90,17 @@ The built files will be in the `dist` directory.
 
 ## Student Results
 
-Administrators can open **Student Results** in the dashboard to add or edit subject marks for an existing student, program, academic year, and term. Results remain drafts until **Publish these results for parents** is selected. Parents access published results from the public website's **Student Results** page after creating an account or signing in.
+Administrators can open **Student Results** in the dashboard to add or edit subject marks for an existing student, program, academic year, and term. Results remain drafts until **Publish these results** is selected.
 
 Run `migrations/2026-10-20_student_results.sql` in the backend project against an existing database before deploying these changes.
 
-<<<<<<< HEAD
 ## Smart Management and meetings
 
-The React admin panel includes a meetings workspace backed by the Smart Management Flask service. Set `VITE_SMART_MANAGEMENT_API_BASE_URL` to that service's public base URL. On the Flask service, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the same Supabase project configured for this React app, and set `ADMIN_PANEL_ORIGINS` to the exact deployed admin-panel origin(s).
+The React admin panel includes a meetings workspace backed by the Smart Management Flask service. Set `VITE_SMART_MANAGEMENT_API_BASE_URL` to that service's public base URL. On the Flask service, the meeting app authenticates using the same Supabase user tokens and verifies that the active user has a matching school account before exposing meeting data.
 
-The Flask service verifies each Supabase bearer token with Supabase Auth, then finds an active Smart Management account with the same confirmed email. Meeting roles, guardian relationships, class scope, and record permissions continue to come from Smart Management's database. Accounts need matching emails in both systems. The React workspace includes meeting scheduling, parent requests, invitations, attendance, agendas, minutes and approvals, action tracking, reports, guardian links, room reservations, Teams links, policy settings, and the audit trail.
-=======
 ## Documents
 
-To add a document, sign in to the admin panel, open **Documents**, choose a PDF, Word, PowerPoint, or Excel file, and select **Upload File**. To download one, open **Documents** on the public website and select **Download** beside the file. Use the dashboard's **Delete** action to remove a document from both the library and public list.
->>>>>>> b533152 (committed)
+To add a document, sign in to the admin panel, open **Documents**, choose a PDF, Word, PowerPoint, or Excel file, and select **Upload File**. To download one, open **Documents** on the public website and click the download arrow for the file you want.
 
 ## Deployment to Render
 
@@ -193,5 +183,39 @@ admin-panel-copy/
 ## Support
 
 For issues or questions, please contact the development team.
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+
+## Feature scope for the current school system
+
+This admin panel is configured for the academic and results workflow. Attendance tracking is intentionally outside the current scope and should not be added to the workspace until a separate requirement is provided.
+
+### Included admin panel features
+1. Admin dashboard overview.
+2. Student management.
+3. Teacher management.
+4. Staff management.
+5. Academic years management.
+6. Terms management.
+7. Programs, departments and class configuration.
+8. Subject and module management.
+9. Teacher assignment to subjects and classes.
+10. Examinations and assessment setup.
+11. Marks entry and validation.
+12. Automatic results calculation.
+13. Student rankings and performance analytics.
+14. Results approval and publication.
+15. Report card generation and downloads.
+16. Role-based access control and audit logging.
+17. No attendance management in the current implementation.
+
+### Backend feature scope
+1. Authentication and authorization.
+2. Student management APIs.
+3. Teacher and staff APIs.
+4. Academic year, term and class structure APIs.
+5. Subject, assessment and marks APIs.
+6. Automated results processing and publication APIs.
+7. Results approval and report generation.
+8. Data import/export for marks and results.
+9. Security, validation and audit logging.
+10. No attendance API endpoints in the current scope.
+
