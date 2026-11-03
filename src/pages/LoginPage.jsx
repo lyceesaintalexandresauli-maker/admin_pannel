@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
 import { useAuth } from "../context/AuthContext";
+import "./LoginPage.css";
 
 const isAdminPortalBuild = import.meta.env.VITE_APP_MODE === "admin";
 
@@ -54,49 +55,64 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-[75vh] bg-slate-50 px-4 py-12 sm:px-6">
+    <main className="staff-login-page">
       <Seo
         title="Staff Login | Lycée Saint Alexandre Sauli"
         description="Secure staff login for Lycée Saint Alexandre Sauli."
         path="/login"
       />
-      <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 lg:grid-cols-[1.05fr_0.95fr]">
-        <section className="relative hidden min-h-[560px] flex-col justify-between overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 p-10 text-white lg:flex">
-          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full border-[32px] border-white/10" />
-          <div className="absolute -bottom-24 -left-20 h-80 w-80 rounded-full border-[36px] border-white/10" />
-          <div className="relative">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-200">Lycée Saint Alexandre Sauli</p>
-            <h1 className="mt-8 max-w-md text-4xl font-bold leading-tight">One school portal. The right access for every role.</h1>
-            <p className="mt-5 max-w-md text-base leading-7 text-blue-100">Teachers prepare and submit marks. Administrators manage school records and publish academic results through one secure sign-in.</p>
-          </div>
-          <div className="relative border-t border-white/20 pt-5 text-sm text-blue-100">Knowledge · Good conduct · Service · Integrity · Diligence</div>
-        </section>
-        <section className="flex items-center justify-center p-6 sm:p-10 lg:p-12">
-          <div className="w-full max-w-md">
-            <div className="mb-7">
-              <p className="text-sm font-bold uppercase tracking-wider text-blue-800">Staff portal</p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">Welcome back</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">Sign in with the email and password provided by your school administrator.</p>
+      <div className="staff-login-shell">
+        <section className="staff-login-info" aria-label="Staff portal information">
+          <div className="staff-login-brand">
+            <img src="/assets/img/logo1.jpg" alt="Lycée Saint Alexandre Sauli crest" />
+            <div>
+              <span>Staff Portal</span>
+              <strong>Lycée Saint Alexandre Sauli de Muhura</strong>
             </div>
+          </div>
+
+          <div className="staff-login-copy">
+            <p className="staff-login-eyebrow">Secure access</p>
+            <h1>Manage school content, staff updates, and timetable tools from one place.</h1>
+            <p className="staff-login-description">
+              This portal is reserved for authorized school staff. Administrators manage the school dashboard, while teachers can prepare results for review.
+            </p>
+          </div>
+
+          <div className="staff-login-highlights" aria-label="Portal benefits">
+            <div><strong>Protected</strong><span>Staff-only access</span></div>
+            <div><strong>Centralized</strong><span>School tools in one place</span></div>
+            <div><strong>Responsive</strong><span>Works across devices</span></div>
+          </div>
+          <p className="staff-login-motto">Ubumenyi · Ubumuntu · Ubupfura · Ubwitange</p>
+        </section>
+
+        <section className="staff-login-form-panel" aria-labelledby="staff-login-title">
+          <div className="staff-login-form-card">
+            <div className="staff-login-crest-tile">
+              <img src="/assets/img/logo1.jpg" alt="" />
+            </div>
+            <p className="staff-login-eyebrow">Welcome back</p>
+            <h2 id="staff-login-title">Staff Sign In</h2>
+            <p className="staff-login-intro">Enter your official school account to continue to your staff workspace.</p>
 
             {(error || authConfigError) && (
-              <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              <div role="alert" className="staff-login-alert">
                 {error || authConfigError}
               </div>
             )}
 
             {isAdminPortalBuild && isAuthenticated && user && !destinationForRole(user.role) && (
-              <div role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <div role="status" className="staff-login-access-notice">
                 This account is not authorized for the staff admin portal. Please sign out and use the appropriate school portal.
-                <button type="button" className="ml-2 font-bold underline" onClick={logout}>Sign out</button>
+                <button type="button" className="staff-login-logout" onClick={logout}>Sign out</button>
               </div>
             )}
 
-            <form onSubmit={submit} className="space-y-5">
-              <label className="block text-sm font-semibold text-slate-700">
-                Email address
+            <form onSubmit={submit} className="staff-login-form">
+              <label className="staff-login-field">
+                <span>Email address</span>
                 <input
-                  className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-blue-700 focus:ring-4 focus:ring-blue-100"
                   type="email"
                   autoComplete="username"
                   value={email}
@@ -105,43 +121,37 @@ export default function LoginPage() {
                   required
                 />
               </label>
-              <label className="block text-sm font-semibold text-slate-700">
-                Password
-                <div className="relative mt-2">
+              <label className="staff-login-field">
+                <span>Password</span>
+                <div className="staff-login-password-wrap">
                   <input
-                    className="w-full rounded-xl border border-slate-300 px-4 py-3 pr-20 text-base outline-none transition focus:border-blue-700 focus:ring-4 focus:ring-blue-100"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Enter your password"
+                    placeholder="Enter password"
                     required
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-3 text-xs font-bold text-blue-800"
+                    className="staff-login-show-password student-portal-btn-muted"
                     onClick={() => setShowPassword((value) => !value)}
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
                 </div>
               </label>
-              <button
-                type="submit"
-                disabled={busy || !isReady}
-                className="flex w-full items-center justify-center rounded-xl bg-blue-900 px-4 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {busy ? "Signing in…" : "Sign in securely"}
+              <button type="submit" disabled={busy || !isReady} className="staff-login-submit">
+                {busy ? "Signing in…" : "Sign in"}
               </button>
             </form>
-            <p className="mt-6 text-center text-xs leading-5 text-slate-500">Access is provided by the school. Contact the administrator if you need an account or password reset.</p>
-            <div className="mt-6 text-center">
+
+            <p className="staff-login-help">Access is provided by the school. Contact your administrator if you need an account or password reset.</p>
+            <div className="staff-login-public-link">
               {isAdminPortalBuild ? (
-                <a href={import.meta.env.VITE_PUBLIC_SITE_URL || "https://www.lyceemuhura.rw"} className="text-sm font-semibold text-blue-800 hover:underline">
-                  Visit public school website
-                </a>
+                <a href={import.meta.env.VITE_PUBLIC_SITE_URL || "https://www.lyceemuhura.rw"}>Visit public school website</a>
               ) : (
-                <Link to="/" className="text-sm font-semibold text-blue-800 hover:underline">Return to school website</Link>
+                <Link to="/">Return to school website</Link>
               )}
             </div>
           </div>
