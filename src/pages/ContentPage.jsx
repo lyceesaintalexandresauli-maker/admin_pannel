@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -188,9 +184,7 @@ export default function ContentPage() {
         </div>
       </section>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import { useParams } from "react-router-dom";
 import EditableWebsitePage from "../components/EditableWebsitePage";
 
@@ -212,7 +206,6 @@ export default function ContentPage() {
         { section: "intro", title, content: "This page is ready for school content in the admin Website Content section." },
       ]}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

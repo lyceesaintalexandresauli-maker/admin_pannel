@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Seo from "../components/Seo";
@@ -418,9 +414,7 @@ export default function StaffPage() {
         </div>
       </section>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import WebsiteCollectionPage from "../components/WebsiteCollectionPage";
 
 export default function StaffPage() {
@@ -445,7 +439,6 @@ export default function StaffPage() {
         </article>
       )}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

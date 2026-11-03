@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { contentAPI } from "../api/services";
@@ -200,9 +196,7 @@ export default function AcademicPage() {
         </div>
       </section>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import EditableWebsitePage from "../components/EditableWebsitePage";
 
 export default function AcademicPage() {
@@ -218,7 +212,6 @@ export default function AcademicPage() {
         { section: "admissions", title: "Admissions", content: "Contact the school for current admission requirements, schedules, and available programs." },
       ]}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

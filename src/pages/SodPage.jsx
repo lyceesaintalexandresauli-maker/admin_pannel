@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -305,9 +301,7 @@ export default function SodPage() {
         .slide-text h1 { font-size: clamp(1.8rem, 4vw, 3rem); margin-bottom: .8rem; }
       `}</style>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import EditableWebsitePage from "../components/EditableWebsitePage";
 
 export default function SodPage() {
@@ -322,7 +316,6 @@ export default function SodPage() {
         { section: "admissions", title: "Course and admission details", content: "Contact the school for current course details, practical training information, and entry requirements." },
       ]}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

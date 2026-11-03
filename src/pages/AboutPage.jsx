@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 ﻿import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { mediaUrl } from "../api/client";
@@ -631,9 +627,7 @@ integrating academic excellence, Christian morals, discipline, and practical ski
         }
       `}</style>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import EditableWebsitePage from "../components/EditableWebsitePage";
 
 export default function AboutPage() {
@@ -649,7 +643,6 @@ export default function AboutPage() {
         { section: "values", title: "Our Values", content: "We value learning, integrity, responsibility, service, and respect for every member of our community." },
       ]}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

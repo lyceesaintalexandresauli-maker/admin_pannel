@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useState } from "react";
 import { contactAPI } from "../api/services";
 import Seo from "../components/Seo";
@@ -198,9 +194,7 @@ export default function ContactPage() {
         </div>
       </section>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import EditableWebsitePage from "../components/EditableWebsitePage";
@@ -238,7 +232,6 @@ export default function ContactPage() {
       description="Contact Lycee Saint Alexandre Sauli de Muhura for admissions, programs, and general school information."
       appendSections={[{ section: "contact", title: "Contact Information", content: contactCopy }]}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

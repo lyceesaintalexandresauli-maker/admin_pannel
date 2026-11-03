@@ -1,21 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { api, getApiError } from "../api/client";
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import {
   getAuthEmailRedirectUrl,
   getSupabaseBrowserClient,
   getSupabaseConfigError,
   isSupabaseConfigured,
 } from "../supabase";
-<<<<<<< HEAD
-=======
-=======
-import { getSupabaseBrowserClient, getSupabaseConfigError, isSupabaseConfigured } from "../supabase";
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
 
 const AuthContext = createContext(null);
 
@@ -66,10 +56,6 @@ const extractAuthConfigMessage = (error) => {
   return backendMessage;
 };
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 const isMissingStaffProfileError = (error) => {
   const status = error?.response?.status;
   const backendMessage = String(error?.response?.data?.error || "").toLowerCase();
@@ -95,14 +81,6 @@ const safeClientAuthMessage = (message, fallback) => {
     return m;
   }
   return fallback;
-<<<<<<< HEAD
-=======
-=======
-const shouldForceSignOut = (error) => {
-  const status = error?.response?.status;
-  return status === 401 || status === 403;
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
 };
 
 export function AuthProvider({ children }) {
@@ -162,10 +140,6 @@ export function AuthProvider({ children }) {
       setAuthConfigError("");
       return data;
     } catch (error) {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
       if (isMissingStaffProfileError(error)) {
         const supabase = getSupabaseBrowserClient();
         const {
@@ -191,11 +165,6 @@ export function AuthProvider({ children }) {
         return studentProfile;
       }
 
-<<<<<<< HEAD
-=======
-=======
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
       const configMessage = extractAuthConfigMessage(error);
 
       if (error?.response?.status === 503 && configMessage) {
@@ -237,17 +206,8 @@ export function AuthProvider({ children }) {
             }
           }
         } else {
-<<<<<<< HEAD
           clearSession();
           purgeAuthStorage();
-=======
-<<<<<<< HEAD
-          clearSession();
-          purgeAuthStorage();
-=======
-          await hardResetAuthState();
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
         }
 
         const { data } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
@@ -272,21 +232,11 @@ export function AuthProvider({ children }) {
 
         subscription = data.subscription;
       } catch (error) {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
         setAuthConfigError(
           import.meta.env.DEV && error?.message
             ? error.message
             : "Sign-in is temporarily unavailable. Please try again later."
         );
-<<<<<<< HEAD
-=======
-=======
-        setAuthConfigError(error.message || "Failed to initialize Supabase Auth");
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
       } finally {
         setIsReady(true);
       }
@@ -303,15 +253,7 @@ export function AuthProvider({ children }) {
     if (!isSupabaseConfigured()) {
       return {
         ok: false,
-<<<<<<< HEAD
         error: getSupabaseConfigError() || "Sign-in is temporarily unavailable.",
-=======
-<<<<<<< HEAD
-        error: getSupabaseConfigError() || "Sign-in is temporarily unavailable.",
-=======
-        error: getSupabaseConfigError() || "Supabase Auth is not configured yet.",
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
       };
     }
 
@@ -328,20 +270,10 @@ export function AuthProvider({ children }) {
         if (/invalid login credentials/i.test(message)) {
           return { ok: false, error: "Invalid email or password." };
         }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
         return {
           ok: false,
           error: safeClientAuthMessage(message, "Invalid email or password."),
         };
-<<<<<<< HEAD
-=======
-=======
-        return { ok: false, error: message || "Login failed" };
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
       }
 
       const profile = await hydrateProfile(data.session?.access_token);
@@ -357,10 +289,6 @@ export function AuthProvider({ children }) {
       const configMessage = extractAuthConfigMessage(error);
       return {
         ok: false,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
         error: configMessage || getApiError(error, "Login failed"),
       };
     }
@@ -430,14 +358,6 @@ export function AuthProvider({ children }) {
       return {
         ok: false,
         error: getApiError(error, "Unable to create your parent account."),
-<<<<<<< HEAD
-=======
-=======
-        error:
-          configMessage ||
-          getApiError(error, error.message || "Login failed"),
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
       };
     }
   };
@@ -466,10 +386,6 @@ export function AuthProvider({ children }) {
       user,
       token,
       isAuthenticated: !!token,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
       isAdmin: user?.role === "admin",
       isTeacher: user?.role === "teacher",
       isStudent: user?.role === "student",
@@ -482,20 +398,6 @@ export function AuthProvider({ children }) {
       logout,
     }),
     [authConfigError, isReady, loginStep1, logout, refreshMe, registerParent, registerStudent, token, user]
-<<<<<<< HEAD
-=======
-=======
-      isAdmin: String(user?.role || "").toLowerCase() === "admin",
-      isTeacher: user?.role === "teacher",
-      isReady,
-      authConfigError,
-      loginStep1,
-      refreshMe,
-      logout,
-    }),
-    [authConfigError, isReady, token, user]
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -507,12 +409,4 @@ export const useAuth = () => {
     throw new Error("useAuth must be used inside AuthProvider");
   }
   return ctx;
-<<<<<<< HEAD
 };
-=======
-<<<<<<< HEAD
-};
-=======
-};
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main

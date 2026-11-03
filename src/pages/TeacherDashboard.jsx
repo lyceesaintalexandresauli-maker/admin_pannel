@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, getApiError } from "../api/client";
-<<<<<<< HEAD
 import { academicAPI } from "../api/services";
-=======
->>>>>>> origin/main
 import { useAuth } from "../context/AuthContext";
 import TimetableGrid, { normalizeScheduleData } from "../components/TimetableGrid";
 
@@ -20,7 +17,6 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedTimetable, setSelectedTimetable] = useState(null);
-<<<<<<< HEAD
   const [academicModules, setAcademicModules] = useState([]);
   const [academicLoading, setAcademicLoading] = useState(true);
   const [academicError, setAcademicError] = useState("");
@@ -29,18 +25,13 @@ export default function TeacherDashboard() {
   const [marksRows, setMarksRows] = useState([]);
   const [markDrafts, setMarkDrafts] = useState({});
   const [marksBusy, setMarksBusy] = useState(false);
-=======
->>>>>>> origin/main
 
   const department = searchParams.get("department");
   const tradeLevel = searchParams.get("trade_level");
 
   useEffect(() => {
     loadTimetables();
-<<<<<<< HEAD
     loadAcademicModules();
-=======
->>>>>>> origin/main
   }, [department, tradeLevel]);
 
   const loadTimetables = async () => {
@@ -61,7 +52,6 @@ export default function TeacherDashboard() {
     }
   };
 
-<<<<<<< HEAD
   const loadAcademicModules = async () => {
     setAcademicLoading(true);
     setAcademicError("");
@@ -168,8 +158,6 @@ export default function TeacherDashboard() {
     }
   };
 
-=======
->>>>>>> origin/main
   const handleViewTimetable = (timetable) => {
     setSelectedTimetable(timetable);
   };
@@ -265,7 +253,6 @@ export default function TeacherDashboard() {
           <p className="mt-1 text-slate-600">Welcome, {user?.full_name || user?.username}</p>
         </header>
 
-<<<<<<< HEAD
         <section className="mb-10">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -334,8 +321,6 @@ export default function TeacherDashboard() {
           )}
         </section>
 
-=======
->>>>>>> origin/main
         <section>
           <div className="mb-4">
             <h2 className="text-xl font-semibold text-slate-900">Timetables</h2>

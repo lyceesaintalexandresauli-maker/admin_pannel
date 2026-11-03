@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useMemo, useState } from "react";
 import { galleryAPI } from "../api/services";
 import { mediaUrl } from "../api/client";
@@ -111,9 +107,7 @@ export default function GalleryPage() {
 
       {selectedItem && <div className="gallery-video-modal" role="dialog" aria-modal="true" aria-label={itemTitle(selectedItem)} onClick={() => setSelectedItem(null)}><div className="gallery-video-dialog" onClick={(event) => event.stopPropagation()}><button className="gallery-video-close" aria-label="Close video" onClick={() => setSelectedItem(null)}><i className="bi bi-x-lg" /></button><video src={mediaUrl(selectedItem.media_path)} controls autoPlay /><h3>{itemTitle(selectedItem)}</h3><p>{itemDescription(selectedItem)}</p></div></div>}
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import WebsiteCollectionPage from "../components/WebsiteCollectionPage";
 
 export default function GalleryPage() {
@@ -136,7 +130,6 @@ export default function GalleryPage() {
         </article>
       )}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

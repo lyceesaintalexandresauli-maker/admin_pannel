@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useEffect, useMemo, useRef, useState } from "react";
 import { mediaUrl } from "../api/client";
 import { eventsAPI } from "../api/services";
@@ -458,9 +454,7 @@ export default function EventsPage() {
         </div>
       </section>
     </main>
-<<<<<<< HEAD
-=======
-=======
+/*
 import WebsiteCollectionPage from "../components/WebsiteCollectionPage";
 
 export default function EventsPage() {
@@ -482,7 +476,6 @@ export default function EventsPage() {
         </article>
       )}
     />
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
+*/
   );
 }

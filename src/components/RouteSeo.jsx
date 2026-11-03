@@ -1,22 +1,8 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
 import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { resolveSiteUrl } from "../config/publicOrigin";
 import Seo from "./Seo";
 
-<<<<<<< HEAD
-=======
-=======
-import { useLocation } from "react-router-dom";
-import Seo from "./Seo";
-
-const SITE_URL = (import.meta.env.VITE_SITE_URL || "https://lycee-muhura.onrender.com").replace(/\/+$/, "");
-
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
 const PAGE_META = {
   "/": {
     title: "Home",
@@ -60,22 +46,12 @@ const PAGE_META = {
   },
   "/login": {
     title: "Login",
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
     description: "Secure portal login for Lycee Saint Alexandre Sauli de Muhura.",
     robots: "noindex,nofollow",
   },
   "/results": {
     title: "Student Results",
     description: "Search and view published student examination results from Lycee Saint Alexandre Sauli de Muhura.",
-<<<<<<< HEAD
-=======
-=======
-    description: "Secure staff portal login for Lycee Saint Alexandre Sauli de Muhura.",
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
     robots: "noindex,nofollow",
   },
   "/timetables": {
@@ -84,27 +60,6 @@ const PAGE_META = {
   },
 };
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
-  name: "Lycee Saint Alexandre Sauli de Muhura",
-  url: SITE_URL,
-  logo: `${SITE_URL}/assets/img/logo1.jpg`,
-  sameAs: [SITE_URL],
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "RW",
-    addressRegion: "Eastern Province",
-    addressLocality: "Gatsibo District",
-  },
-};
-
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
 const buildFallbackMeta = (pathname) => {
   if (pathname.startsWith("/admin") || pathname === "/profile") {
     return {
@@ -114,10 +69,6 @@ const buildFallbackMeta = (pathname) => {
     };
   }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
   if (pathname.startsWith("/student")) {
     return {
       title: "Student Portal",
@@ -126,11 +77,6 @@ const buildFallbackMeta = (pathname) => {
     };
   }
 
-<<<<<<< HEAD
-=======
-=======
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
   const slug = pathname.replace(/^\//, "").trim();
   if (!slug) return PAGE_META["/"];
 
@@ -149,10 +95,6 @@ export default function RouteSeo() {
   const { pathname } = useLocation();
   const normalizedPath = pathname === "/index" ? "/" : pathname;
   const meta = PAGE_META[normalizedPath] || buildFallbackMeta(normalizedPath);
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
   const siteUrl = resolveSiteUrl();
 
   const structuredData = useMemo(() => {
@@ -175,11 +117,6 @@ export default function RouteSeo() {
       sameAs: [siteUrl],
     };
   }, [siteUrl]);
-<<<<<<< HEAD
-=======
-=======
->>>>>>> d0a4f0c5b3c008015b99fab69c46fa8a2d9eafb0
->>>>>>> origin/main
 
   return (
     <Seo
