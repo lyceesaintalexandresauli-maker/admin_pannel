@@ -30,49 +30,73 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const TeacherResultsPage = lazy(() => import("./pages/TeacherResultsPage"));
 const MeetingsPage = lazy(() => import("./pages/MeetingsPage"));
+const isAdminPortalBuild = import.meta.env.VITE_APP_MODE === "admin";
 
 export default function App() {
   return (
     <Suspense fallback={<PageLoader />}>
       <RouteSeo />
       <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="/index" element={<Navigate to="/" replace />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/anouncement" element={<AnnouncementsPage />} />
-          <Route path="/announcements" element={<AnnouncementsPage />} />
-          <Route path="/trainers" element={<StaffPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/results" element={<StudentResultsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/academic" element={<AcademicPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/downloads" element={<Navigate to="/documents" replace />} />
-          <Route path="/sod" element={<SodPage />} />
-          <Route path="/csa" element={<CsaPage />} />
-          <Route path="/nit" element={<NitPage />} />
-          <Route path="/fad" element={<FadPage />} />
-          <Route path="/acc" element={<AccPage />} />
-          <Route path="/timetables" element={<TimetablesPage />} />
-          <Route path="/:slug" element={<ContentPage />} />
-        </Route>
+        {isAdminPortalBuild ? (
+          <>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/panel-login" element={<LoginPanel />} />
+            <Route element={<ProtectedRoute roles={["admin"]} />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/workspace" element={<AdminWorkspace />} />
+            </Route>
+            <Route element={<ProtectedRoute roles={["teacher"]} />}>
+              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              <Route path="/teacher-results" element={<TeacherResultsPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/meetings" element={<MeetingsPage />} />
+            </Route>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </>
+        ) : (
+          <>
+            <Route element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="/index" element={<Navigate to="/" replace />} />
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/anouncement" element={<AnnouncementsPage />} />
+              <Route path="/announcements" element={<AnnouncementsPage />} />
+              <Route path="/trainers" element={<StaffPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/results" element={<StudentResultsPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/academic" element={<AcademicPage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/documents" element={<DocumentsPage />} />
+              <Route path="/downloads" element={<Navigate to="/documents" replace />} />
+              <Route path="/sod" element={<SodPage />} />
+              <Route path="/csa" element={<CsaPage />} />
+              <Route path="/nit" element={<NitPage />} />
+              <Route path="/fad" element={<FadPage />} />
+              <Route path="/acc" element={<AccPage />} />
+              <Route path="/timetables" element={<TimetablesPage />} />
+              <Route path="/:slug" element={<ContentPage />} />
+            </Route>
 
-        <Route path="/panel-login" element={<LoginPanel />} />
-        <Route element={<ProtectedRoute roles={["admin"]} />}>
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/workspace" element={<AdminWorkspace />} />
-        </Route>
-        <Route element={<ProtectedRoute roles={["teacher"]} />}>
-          <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-          <Route path="/teacher-results" element={<TeacherResultsPage />} />
-        </Route>
-        <Route element={<ProtectedRoute />}>
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/meetings" element={<MeetingsPage />} />
-        </Route>
+            <Route path="/panel-login" element={<LoginPanel />} />
+            <Route element={<ProtectedRoute roles={["admin"]} />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/workspace" element={<AdminWorkspace />} />
+            </Route>
+            <Route element={<ProtectedRoute roles={["teacher"]} />}>
+              <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+              <Route path="/teacher-results" element={<TeacherResultsPage />} />
+            </Route>
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/meetings" element={<MeetingsPage />} />
+            </Route>
+          </>
+        )}
       </Routes>
     </Suspense>
   );

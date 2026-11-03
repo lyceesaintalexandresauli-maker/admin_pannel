@@ -3,14 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import Seo from "../components/Seo";
 import { useAuth } from "../context/AuthContext";
 
+const isAdminPortalBuild = import.meta.env.VITE_APP_MODE === "admin";
+
 const destinationForRole = (role) => {
   if (role === "admin") return "/admin/workspace";
   if (role === "teacher") return "/teacher/dashboard";
-  return "/";
+  return isAdminPortalBuild ? null : "/";
 };
 
 export default function LoginPage() {
-  const { loginStep1, isAuthenticated, user, isReady, authConfigError } = useAuth();
+  const { loginStep1, isAuthenticated, user, isReady, authConfigError, logout } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +22,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isReady && isAuthenticated && user) {
-      navigate(destinationForRole(user.role), { replace: true });
+      const destination = destinationForRole(user.role);
+      if (destination) navigate(destination, { replace: true });
     }
   }, [isReady, isAuthenticated, user, navigate]);
 
@@ -36,7 +39,13 @@ export default function LoginPage() {
         return;
       }
 
-      navigate(destinationForRole(result.data?.user?.role), { replace: true });
+      const destination = destinationForRole(result.data?.user?.role);
+      if (!destination) {
+        setError("This account does not have access to the staff admin portal.");
+        await logout();
+        return;
+      }
+      navigate(destination, { replace: true });
     } catch {
       setError("Unable to sign in. Please try again.");
     } finally {
@@ -73,6 +82,13 @@ export default function LoginPage() {
             {(error || authConfigError) && (
               <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                 {error || authConfigError}
+              </div>
+            )}
+
+            {isAdminPortalBuild && isAuthenticated && user && !destinationForRole(user.role) && (
+              <div role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                This account is not authorized for the staff admin portal. Please sign out and use the appropriate school portal.
+                <button type="button" className="ml-2 font-bold underline" onClick={logout}>Sign out</button>
               </div>
             )}
 
@@ -120,7 +136,13 @@ export default function LoginPage() {
             </form>
             <p className="mt-6 text-center text-xs leading-5 text-slate-500">Access is provided by the school. Contact the administrator if you need an account or password reset.</p>
             <div className="mt-6 text-center">
-              <Link to="/" className="text-sm font-semibold text-blue-800 hover:underline">Return to school website</Link>
+              {isAdminPortalBuild ? (
+                <a href={import.meta.env.VITE_PUBLIC_SITE_URL || "https://www.lyceemuhura.rw"} className="text-sm font-semibold text-blue-800 hover:underline">
+                  Visit public school website
+                </a>
+              ) : (
+                <Link to="/" className="text-sm font-semibold text-blue-800 hover:underline">Return to school website</Link>
+              )}
             </div>
           </div>
         </section>

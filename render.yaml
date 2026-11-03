@@ -5,6 +5,8 @@ services:
     buildCommand: npm install && npm run build
     publishDir: dist
     envVars:
+      - key: VITE_APP_MODE
+        value: admin
       - key: VITE_SUPABASE_URL
         sync: false
       - key: VITE_SUPABASE_PROJECT_REF
