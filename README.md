@@ -122,3 +122,39 @@ admin-panel-copy/
 ## Support
 
 For issues or questions, please contact the development team.
+
+## Proposed feature scope for the school system
+
+The following is a target feature summary, not a claim that every item is already implemented. See `ADMIN_WORKSPACE_README.md` for the complete proposed Admin Panel feature list and `../muhura_backend/README.md` for the proposed backend scope and currently documented APIs.
+
+### Admin Panel
+
+1. Dashboard overview of students, teachers, classes, performance, and activities.
+2. Student, teacher, and staff management.
+3. Academic years, terms, programs, departments, levels, classes, and subjects/modules.
+4. Teacher assignments to subjects and classes.
+5. Examination and assessment setup, marks entry, validation, and submission.
+6. Automatic results calculations, rankings, performance analytics, and academic history.
+7. Results review, approval, and publication.
+8. Report cards, transcripts, certificates, and graduation records.
+9. Attendance and discipline management (planned; verify current UI and backend support before treating these as available).
+10. Student and parent portal access management.
+11. Events, photos, videos, news, and announcements.
+12. Spreadsheet import and export for school and academic records.
+13. User roles, permissions, and audit history.
+14. Database backup and restore, and school-wide academic settings.
+
+### Backend
+
+1. Authentication, session management, role-based authorization, and account administration.
+2. Student, teacher, and staff APIs.
+3. Academic year, term, program, department, class, level, and subject APIs.
+4. Teacher assignment and examination APIs.
+5. Marks validation, imports, and draft/submission workflows.
+6. Weighted results calculation, grading, rankings, and historical records.
+7. Results approval and publication workflows.
+8. Report cards, transcripts, certificates, and protected document downloads.
+9. Attendance, discipline, notifications, and analytics APIs (planned; verify endpoint and migration support).
+10. Database integrity, migrations, audit logging, monitoring, secure uploads, and tested backup/restore procedures.
+
+PostgreSQL must remain the source of truth for official academic records. Frontend browser storage is not a permanent or shared store for school records. Portal APIs must scope student access to the signed-in student and parent access to verified linked children.
