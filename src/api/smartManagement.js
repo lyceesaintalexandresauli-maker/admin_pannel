@@ -1,17 +1,63 @@
 import axios from "axios";
 
-const baseUrl = String(import.meta.env.VITE_SMART_MANAGEMENT_API_BASE_URL || "").trim().replace(/\/+$/, "");
+const configuredBaseUrl = String(import.meta.env.VITE_SMART_MANAGEMENT_API_BASE_URL || "").trim();
+const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+const getSecureBaseUrl = () => {
+  if (!configuredBaseUrl) return "";
+  try {
+    const url = new URL(configuredBaseUrl);
+    const isLoopback = loopbackHosts.has(url.hostname);
+    const isSecureTransport = url.protocol === "https:"
+      || (import.meta.env.DEV && url.protocol === "http:" && isLoopback);
+    if (!isSecureTransport || url.username || url.password || url.search || url.hash) return "";
+    return `${url.origin}${url.pathname.replace(/\/+$/, "")}`;
+  } catch {
+    return "";
+  }
+};
+
+const baseUrl = getSecureBaseUrl();
+const apiBaseUrl = baseUrl ? `${baseUrl}/api` : "";
+const apiBase = apiBaseUrl ? new URL(apiBaseUrl) : null;
+const apiBasePath = apiBase?.pathname.replace(/\/+$/, "") || "";
 
 export const SMART_MANAGEMENT_CONFIGURED = Boolean(baseUrl);
+export const SMART_MANAGEMENT_CONFIG_ERROR = !configuredBaseUrl
+  ? "Set VITE_SMART_MANAGEMENT_API_BASE_URL to connect the Smart Management service."
+  : !baseUrl
+    ? "Smart Management must use an HTTPS URL. HTTP is allowed only for localhost during development."
+    : "";
 
 const smartApi = axios.create({
-  baseURL: `${baseUrl}/api`,
+  baseURL: apiBaseUrl || undefined,
   timeout: 15000,
   headers: { "Content-Type": "application/json" },
+  withCredentials: false,
+  allowAbsoluteUrls: false,
 });
 
 smartApi.interceptors.request.use((config) => {
-  const token = localStorage.getItem("auth_token") || localStorage.getItem("sb-access-token");
+  if (!SMART_MANAGEMENT_CONFIGURED || !apiBase) {
+    throw new Error(SMART_MANAGEMENT_CONFIG_ERROR);
+  }
+  const requestPath = String(config.url || "");
+  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(requestPath)) {
+    throw new Error("Smart Management requests must use the configured API.");
+  }
+  const requestUrl = new URL(requestPath.replace(/^\/+/, ""), `${apiBaseUrl}/`);
+  if (
+    requestUrl.origin !== apiBase.origin
+    || (requestUrl.pathname !== apiBasePath && !requestUrl.pathname.startsWith(`${apiBasePath}/`))
+  ) {
+    throw new Error("Smart Management requests must stay within the configured API.");
+  }
+  let token;
+  try {
+    token = localStorage.getItem("auth_token") || localStorage.getItem("sb-access-token");
+  } catch {
+    throw new Error("Browser storage is unavailable; sign in again before using meetings.");
+  }
   if (token && token !== "undefined" && token !== "null") {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
@@ -25,7 +71,7 @@ export const getSmartManagementError = (error, fallback = "Smart Management requ
 
 const requireConfigured = () => {
   if (!SMART_MANAGEMENT_CONFIGURED) {
-    throw new Error("Set VITE_SMART_MANAGEMENT_API_BASE_URL to connect the Smart Management service.");
+    throw new Error(SMART_MANAGEMENT_CONFIG_ERROR);
   }
 };
 
@@ -38,13 +84,13 @@ export const smartMeetingsAPI = {
     requireConfigured();
     return smartApi.patch(`/meeting-requests/${requestId}`, data);
   },
-  list: (params = {}, config = {}) => {
+  list: (params = {}) => {
     requireConfigured();
-    return smartApi.get("/meetings", { params, ...config });
+    return smartApi.get("/meetings", { params });
   },
-  get: (meetingId, config = {}) => {
+  get: (meetingId) => {
     requireConfigured();
-    return smartApi.get(`/meetings/${meetingId}`, config);
+    return smartApi.get(`/meetings/${meetingId}`);
   },
   create: (data) => {
     requireConfigured();
@@ -166,8 +212,8 @@ export const smartMeetingsAPI = {
     requireConfigured();
     return data ? smartApi.post("/meetings/room-bookings", data) : smartApi.get("/meetings/room-bookings");
   },
-  roomBookingQr: () => {
+  roomBookingQr: (room) => {
     requireConfigured();
-    return smartApi.get("/meetings/room-booking-qr.svg", { responseType: "blob" });
+    return smartApi.get("/meetings/room-booking-qr.svg", { params: { room }, responseType: "blob" });
   },
 };

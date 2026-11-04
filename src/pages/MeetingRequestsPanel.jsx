@@ -36,8 +36,9 @@ export default function MeetingRequestsPanel({ setNotice }) {
       try {
         const response = await smartMeetingsAPI.studentOptions(search.trim());
         setOptions(response.data.data || []);
-      } catch {
+      } catch (error) {
         setOptions([]);
+        setNotice(getSmartManagementError(error));
       }
     }, 250);
     return () => window.clearTimeout(timer);

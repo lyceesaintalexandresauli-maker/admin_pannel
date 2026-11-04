@@ -10,11 +10,16 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
-    "axios": "^1.14.0",
+    "axios": "^1.21.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.0",
+    "react-router-dom": "^7.18.4",
     "xlsx": "^0.18.5"
+  },
+  "overrides": {
+    "follow-redirects": "^1.16.2",
+    "form-data": "^4.0.6",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

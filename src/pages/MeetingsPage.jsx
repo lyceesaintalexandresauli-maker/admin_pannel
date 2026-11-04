@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import {
   getSmartManagementError,
   SMART_MANAGEMENT_CONFIGURED,
+  SMART_MANAGEMENT_CONFIG_ERROR,
   smartMeetingsAPI,
 } from "../api/smartManagement";
 import MeetingRequestsPanel from "./MeetingRequestsPanel";
@@ -57,8 +58,9 @@ function MeetingDetail({ meeting, onClose, onChanged, setNotice }) {
       try {
         const { data } = await smartMeetingsAPI.participantOptions(meeting.id, participantSearch.trim());
         setParticipantOptions(data.data || []);
-      } catch {
+      } catch (error) {
         setParticipantOptions([]);
+        setNotice(getSmartManagementError(error));
       }
     }, 250);
     return () => window.clearTimeout(timer);
@@ -73,8 +75,9 @@ function MeetingDetail({ meeting, onClose, onChanged, setNotice }) {
       try {
         const { data } = await smartMeetingsAPI.participantOptions(meeting.id, assigneeSearch.trim());
         setAssigneeOptions((data.data || []).filter((person) => person.role !== "parent"));
-      } catch {
+      } catch (error) {
         setAssigneeOptions([]);
+        setNotice(getSmartManagementError(error));
       }
     }, 250);
     return () => window.clearTimeout(timer);
@@ -264,16 +267,35 @@ function MeetingAdminTools({ view, setNotice }) {
     return text.includes(query.trim().toLowerCase());
   }), [query, rows]);
 
+  const reportColumns = ["date", "title", "type", "class_name", "status", "participant_count", "parents_invited_count", "parents_accepted_count", "parents_present_count", "parents_absent_count", "parents_late_count", "parents_excused_count"];
+  const safeSpreadsheetValue = (value) => {
+    if (typeof value === "number") return value;
+    const text = String(value ?? "");
+    return /^[\s\uFEFF]*[=+\-@]/.test(text) ? `'${text}` : text;
+  };
   const exportCsv = () => {
-    const columns = ["date", "title", "type", "class_name", "status", "participant_count", "parents_invited_count", "parents_accepted_count", "parents_present_count", "parents_absent_count", "parents_late_count", "parents_excused_count"];
-    const quote = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
-    const csv = [columns.join(","), ...rows.map((row) => columns.map((key) => quote(row[key])).join(","))].join("\r\n");
+    const quote = (value) => `"${String(safeSpreadsheetValue(value)).replaceAll('"', '""')}"`;
+    const csv = [reportColumns.join(","), ...rows.map((row) => reportColumns.map((key) => quote(row[key])).join(","))].join("\r\n");
     const url = URL.createObjectURL(new Blob([`\ufeff${csv}`], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;
     link.download = "meeting-report.csv";
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  const exportXlsx = async () => {
+    try {
+      const XLSX = await import("xlsx");
+      const worksheet = XLSX.utils.aoa_to_sheet([
+        reportColumns,
+        ...rows.map((row) => reportColumns.map((key) => safeSpreadsheetValue(row[key]))),
+      ]);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Meeting report");
+      XLSX.writeFile(workbook, "meeting-report.xlsx");
+    } catch (error) {
+      setNotice(getSmartManagementError(error, "Could not create the Excel report."));
+    }
   };
 
   const saveSettings = async (event) => {
@@ -311,7 +333,7 @@ function MeetingAdminTools({ view, setNotice }) {
   };
 
   if (view === "rooms") return <section className="sm-panel sm-admin-panel">
-    <div className="sm-admin-panel-head"><div><span className="sm-eyebrow">ROOM OCCUPANCY</span><h2>Live meeting rooms</h2><p>{roomState.schedule?.updated_at ? `Last refreshed at ${roomState.schedule.updated_at}.` : "Room occupancy from current meetings and reservations."}</p></div><button className="sm-secondary-button" onClick={async () => { try { const { data } = await smartMeetingsAPI.roomBookingQr(); if (qrUrl) URL.revokeObjectURL(qrUrl); setQrUrl(URL.createObjectURL(data)); } catch (error) { setNotice(getSmartManagementError(error)); } }}>Show room booking QR</button></div>
+    <div className="sm-admin-panel-head"><div><span className="sm-eyebrow">ROOM OCCUPANCY</span><h2>Live meeting rooms</h2><p>{roomState.schedule?.updated_at ? `Last refreshed at ${roomState.schedule.updated_at}.` : "Room occupancy from current meetings and reservations."}</p></div><button className="sm-secondary-button" disabled={!bookingForm.room} onClick={async () => { try { const { data } = await smartMeetingsAPI.roomBookingQr(bookingForm.room); if (qrUrl) URL.revokeObjectURL(qrUrl); setQrUrl(URL.createObjectURL(data)); } catch (error) { setNotice(getSmartManagementError(error)); } }}>Show QR for selected room</button></div>
     {qrUrl && <div className="sm-room-qr"><img src={qrUrl} alt="Room booking QR code" /><span>Scan to open the room booking page.</span></div>}
     <div className="sm-room-grid">{(roomState.schedule?.rooms || []).map((room) => <article className={`sm-room-card ${room.occupied ? "occupied" : "available"}`} key={room.name}><span className="sm-eyebrow">{room.occupied ? "IN USE" : "AVAILABLE"}</span><h3>{room.name}</h3><p>{room.present ?? 0}{room.capacity ? ` / ${room.capacity}` : ""} people present</p>{room.over_capacity && <strong>Over capacity</strong>}</article>)}{!roomState.schedule?.rooms?.length && <p className="sm-empty-inline">No room occupancy data is available yet.</p>}</div>
     <div className="sm-room-layout"><div><div className="sm-section-heading"><div><span className="sm-eyebrow">LIVE RESERVATIONS</span><h3>Active room bookings</h3></div><span className="sm-count">{roomState.bookings.bookings?.length || 0}</span></div>
@@ -321,8 +343,8 @@ function MeetingAdminTools({ view, setNotice }) {
   </section>;
 
   if (view === "reports") return <section className="sm-panel sm-admin-panel">
-    <div className="sm-admin-panel-head"><div><span className="sm-eyebrow">ATTENDANCE AND PARTICIPATION</span><h2>Meeting reports</h2><p>Filtered counts from records within your authorized scope.</p></div><button className="sm-primary-button" onClick={exportCsv} disabled={!rows.length}>Export CSV</button></div>
-    <div className="sm-filter-bar"><label><span>From</span><input type="date" value={filters.date_from} onChange={(event) => setFilters((current) => ({ ...current, date_from: event.target.value }))} /></label><label><span>To</span><input type="date" value={filters.date_to} onChange={(event) => setFilters((current) => ({ ...current, date_to: event.target.value }))} /></label><label><span>Class</span><input value={filters.class_name} onChange={(event) => setFilters((current) => ({ ...current, class_name: event.target.value }))} placeholder="Class name" /></label></div>
+    <div className="sm-admin-panel-head"><div><span className="sm-eyebrow">ATTENDANCE AND PARTICIPATION</span><h2>Meeting reports</h2><p>Filtered counts from records within your authorized scope.</p></div><div className="sm-report-actions"><button className="sm-secondary-button" onClick={() => window.print()} disabled={!rows.length}>Print / Save PDF</button><button className="sm-secondary-button" onClick={exportXlsx} disabled={!rows.length}>Export Excel</button><button className="sm-primary-button" onClick={exportCsv} disabled={!rows.length}>Export CSV</button></div></div>
+    <div className="sm-filter-bar"><label><span>From</span><input type="date" value={filters.date_from} onChange={(event) => setFilters((current) => ({ ...current, date_from: event.target.value }))} /></label><label><span>To</span><input type="date" value={filters.date_to} onChange={(event) => setFilters((current) => ({ ...current, date_to: event.target.value }))} /></label><label><span>Class</span><input value={filters.class_name} onChange={(event) => setFilters((current) => ({ ...current, class_name: event.target.value }))} placeholder="Class name" /></label><label><span>Type</span><select value={filters.type || ""} onChange={(event) => setFilters((current) => ({ ...current, type: event.target.value }))}><option value="">All types</option>{TYPES.map(([type, label]) => <option value={type} key={type}>{label}</option>)}</select></label><label><span>Status</span><select value={filters.status || ""} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}><option value="">All statuses</option>{STATUSES.map((status) => <option key={status}>{status}</option>)}</select></label></div>
     <div className="sm-table-wrap"><table className="sm-table"><thead><tr><th>Date and meeting</th><th>Class</th><th>Status</th><th>Participants</th><th>Parents invited</th><th>Accepted</th><th>Present</th><th>Absent</th></tr></thead><tbody>{loading ? <tr><td colSpan="8" className="sm-table-message">Loading report…</td></tr> : rows.length ? rows.map((row) => <tr key={row.id}><td><strong>{row.title}</strong><small>{row.date} · {formatType(row.type)}</small></td><td>{row.class_name || "School-wide"}</td><td>{row.status}</td><td>{row.participant_count}</td><td>{row.parents_invited_count}</td><td>{row.parents_accepted_count}</td><td>{row.parents_present_count}</td><td>{row.parents_absent_count}</td></tr>) : <tr><td colSpan="8" className="sm-table-message">No report rows for these filters.</td></tr>}</tbody></table></div>
   </section>;
 
@@ -413,8 +435,9 @@ export default function MeetingsPage() {
       try {
         const { data } = await smartMeetingsAPI.studentOptions(studentSearch.trim());
         setStudentOptions(data.data || []);
-      } catch {
+      } catch (error) {
         setStudentOptions([]);
+        setNotice(getSmartManagementError(error));
       }
     }, 250);
     return () => window.clearTimeout(timer);
@@ -429,7 +452,10 @@ export default function MeetingsPage() {
       try {
         const { data } = await smartMeetingsAPI.staffOptions(moderatorSearch.trim());
         setModeratorOptions(data.data || []);
-      } catch { setModeratorOptions([]); }
+      } catch (error) {
+        setModeratorOptions([]);
+        setNotice(getSmartManagementError(error));
+      }
     }, 250);
     return () => window.clearTimeout(timer);
   }, [draft.meeting_type, moderatorSearch, showCreate]);
@@ -443,7 +469,10 @@ export default function MeetingsPage() {
       try {
         const { data } = await smartMeetingsAPI.staffOptions(panelistSearch.trim());
         setPanelistOptions((data.data || []).filter((staff) => !panelists.some((selectedStaff) => selectedStaff.id === staff.id) && staff.id !== Number(draft.panel_moderator_id)));
-      } catch { setPanelistOptions([]); }
+      } catch (error) {
+        setPanelistOptions([]);
+        setNotice(getSmartManagementError(error));
+      }
     }, 250);
     return () => window.clearTimeout(timer);
   }, [draft.meeting_type, draft.panel_moderator_id, panelistSearch, panelists, showCreate]);
@@ -530,7 +559,7 @@ export default function MeetingsPage() {
           {[["meetings", "Calendar and meetings"], ["requests", "Parent requests"], ["rooms", "Rooms"], ["reports", "Reports"], ["guardians", "Guardian links"], ["settings", "Policy settings"], ["audit", "Audit trail"]].map(([key, label]) => <button key={key} className={view === key ? "active" : ""} onClick={() => { setView(key); setNotice(""); }}>{label}</button>)}
         </nav>
 
-        {!SMART_MANAGEMENT_CONFIGURED && <div className="sm-alert sm-alert-info">Set <code>VITE_SMART_MANAGEMENT_API_BASE_URL</code> to connect this workspace to Smart Management.</div>}
+        {!SMART_MANAGEMENT_CONFIGURED && <div className="sm-alert sm-alert-error" role="alert">{SMART_MANAGEMENT_CONFIG_ERROR}</div>}
         {notice && <div className="sm-alert" role="status">{notice}<button onClick={() => setNotice("")} aria-label="Dismiss message">×</button></div>}
         {error && <div className="sm-alert sm-alert-error" role="alert"><strong>Meetings could not load.</strong> {error}{(error.includes("Supabase") || error.includes("active Smart Management account")) && <p>Sign in with the admin panel’s Supabase account and make sure its confirmed email matches an active Smart Management account.</p>}</div>}
 
