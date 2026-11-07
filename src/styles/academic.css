@@ -1,0 +1,233 @@
+body {
+  margin: 0;
+}
+
+.adm-teacher-results {
+  min-height: 100vh;
+  padding: 1.25rem;
+  background: #f5f7fb;
+}
+
+.adm-teacher-results-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.9rem;
+  background: #fff;
+}
+
+.adm-teacher-results-head h1 {
+  margin: 0 0 0.2rem;
+  font-size: 1.5rem;
+}
+
+.adm-teacher-results-head p {
+  margin: 0;
+  color: #64748b;
+}
+
+.adm-academic-shell {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.9rem;
+  background: #fff;
+}
+
+.adm-academic-form {
+  margin-bottom: 1rem;
+}
+
+.adm-academic-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.adm-academic-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.8rem;
+  background: #f8fafc;
+}
+
+.adm-academic-list-header {
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.adm-academic-module {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.7rem;
+  text-align: left;
+  background: #fff;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.adm-academic-module.selected {
+  border-color: #f3d57b;
+  box-shadow: inset 0 0 0 1px #f3d57b;
+}
+
+.adm-academic-module-name {
+  font-weight: 800;
+}
+
+.adm-academic-module-meta {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.adm-academic-workspace {
+  min-width: 0;
+}
+
+.adm-academic-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adm-academic-header h4 {
+  margin: 0 0 0.2rem;
+  font-size: 1.2rem;
+}
+
+.adm-academic-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.adm-academic-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.adm-academic-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.adm-academic-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.8rem;
+  background: #f8fafc;
+}
+
+.adm-academic-summary span {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.adm-academic-summary strong {
+  font-size: 0.95rem;
+}
+
+.adm-academic-table input {
+  width: 100%;
+  min-width: 70px;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #dbe2ea;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.adm-academic-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.3rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.adm-academic-badge.draft {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.adm-academic-badge.submitted {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.adm-academic-badge.review {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.adm-academic-badge.returned {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.adm-academic-badge.approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.adm-academic-badge.locked {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.adm-academic-badge.published {
+  background: #dcfce7;
+  color: #166534;
+}
+
+@media (max-width: 900px) {
+  .adm-academic-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-academic-summary {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .adm-teacher-results {
+    padding: 0.75rem;
+  }
+
+  .adm-teacher-results-head,
+  .adm-academic-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .adm-academic-summary {
+    grid-template-columns: 1fr;
+  }
+}
