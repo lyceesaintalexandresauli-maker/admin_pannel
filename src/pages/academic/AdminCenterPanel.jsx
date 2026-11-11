@@ -72,7 +72,15 @@ export default function AdminCenterPanel() {
   const loadStaff = useCallback(async () => {
     try {
       const res = await api.get("/users");
-      setUsers(Array.isArray(res.data) ? res.data : res.data?.users || []);
+      const raw = res.data;
+      const list = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.users)
+          ? raw.users
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : [];
+      setUsers(list);
     } catch (err) {
       setError(getApiError(err, "Unable to load staff accounts."));
       setUsers([]);
@@ -82,7 +90,15 @@ export default function AdminCenterPanel() {
   const loadStudents = useCallback(async () => {
     try {
       const res = await api.get("/students");
-      setStudents(Array.isArray(res.data) ? res.data : res.data?.students || []);
+      const raw = res.data;
+      const list = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.students)
+          ? raw.students
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : [];
+      setStudents(list);
     } catch (err) {
       setError(getApiError(err, "Unable to load students."));
       setStudents([]);
@@ -191,8 +207,8 @@ export default function AdminCenterPanel() {
         });
         setNotice("Staff account updated.");
       } else {
-        if (!staffForm.password || staffForm.password.length < 6) {
-          setError("Password must be at least 6 characters.");
+        if (!staffForm.password || staffForm.password.length < 8) {
+          setError("Password must be at least 8 characters.");
           setSaving(false);
           return;
         }
@@ -217,8 +233,8 @@ export default function AdminCenterPanel() {
   };
 
   const changePassword = async (id) => {
-    if (!newPassword || newPassword.length < 6) {
-      setError("New password must be at least 6 characters.");
+    if (!newPassword || newPassword.length < 8) {
+      setError("New password must be at least 8 characters.");
       return;
     }
     setSaving(true);
@@ -692,7 +708,7 @@ export default function AdminCenterPanel() {
                 <input
                   type="password"
                   required
-                  minLength={6}
+                  minLength={8}
                   value={staffForm.password}
                   onChange={(e) => setStaffForm((f) => ({ ...f, password: e.target.value }))}
                 />
@@ -852,7 +868,7 @@ export default function AdminCenterPanel() {
             <h3>Set new password</h3>
             <input
               type="password"
-              placeholder="New password (min 6 chars)"
+              placeholder="New password (min 8 chars)"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               autoFocus

@@ -8,14 +8,14 @@ import ReportCardsPanel from "./academic/ReportCardsPanel";
 /**
  * Academic Workflow — expert React rebuild for Lycee de Muhura.
  * Three panels ported from Lycee Academics (Python Flask):
- *   1. Student Admin Center  (admin.py — students + staff accounts)
+ *   1. Admin Center          (admin.py — students + staff accounts)
  *   2. Classes & Modules     (classes_modules.py — full curriculum catalog)
- *   3. Report Cards          (academics.py grades + existing marks workflow)
+ *   3. Report Card           (academics.py grades + existing marks workflow)
  */
 const TABS = [
-  { id: "admin", label: "Student Admin Center", icon: "👤", adminOnly: true },
+  { id: "admin", label: "Admin Center", icon: "⚙", adminOnly: true },
   { id: "classes", label: "Classes & Modules", icon: "📚", adminOnly: false },
-  { id: "reports", label: "Report Cards", icon: "📋", adminOnly: false },
+  { id: "reports", label: "Report Card", icon: "📋", adminOnly: false },
 ];
 
 export default function AcademicResultsWorkspace({ isAdmin = false }) {
@@ -33,7 +33,7 @@ export default function AcademicResultsWorkspace({ isAdmin = false }) {
           <p className="aw-eyebrow">Academic Workflow</p>
           <h1 className="aw-heading">Lycee Academics</h1>
           <p className="aw-lead">
-            Student Admin Center · Classes &amp; Modules · Report Cards — everything from the original
+            Admin Center · Classes &amp; Modules · Report Card — everything from the original
             Python panels, rebuilt in React.
           </p>
         </div>
