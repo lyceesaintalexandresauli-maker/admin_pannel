@@ -173,14 +173,25 @@ const RESOURCE_CONFIG = {
     columns: ["id", "type", "value"],
   },
   users: {
-    title: "Admin/Teacher Users",
+    title: "Staff Accounts",
     endpoint: "/users",
     idKey: "id",
     fields: [
       { key: "username", label: "Username", type: "text", required: true },
       { key: "email", label: "Email", type: "email", required: true },
       { key: "password", label: "Password", type: "password", required: true, createOnly: true },
-      { key: "role", label: "Role (admin/teacher/secretary/dos)", type: "text", required: true },
+      {
+        key: "role",
+        label: "Role",
+        type: "select",
+        required: true,
+        options: [
+          { value: "admin", label: "Administrator" },
+          { value: "teacher", label: "Teacher" },
+          { value: "secretary", label: "Secretary" },
+          { value: "dos", label: "Director of Studies (DOS)" },
+        ],
+      },
       { key: "full_name", label: "Full name", type: "text" },
       { key: "phone", label: "Phone", type: "text" },
       { key: "bio", label: "Bio", type: "textarea" },
@@ -1709,7 +1720,7 @@ export default function AdminDashboard() {
   } else if (active === "results") {
     content = <StudentResultsManager onOpenAssistant={() => setActive("aiChat")} />;
   } else if (active === "academicWorkflow") {
-    content = <AcademicResultsWorkspace isAdmin={true} />;
+    content = <AcademicResultsWorkspace isAdmin embedded />;
   } else if (active === "aiChat") {
     content = <SeverainAdminAssistant />;
   } else if (active === "messages") {
@@ -1788,6 +1799,7 @@ export default function AdminDashboard() {
                   title={item.label}
                   aria-label={item.label}
                   className={`adm-nav-item ${active === item.id ? "active" : ""}`}
+                  aria-current={active === item.id ? "page" : undefined}
                   onClick={() => {
                     setActive(item.id);
                     setStatus("");

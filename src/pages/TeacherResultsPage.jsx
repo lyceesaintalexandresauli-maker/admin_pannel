@@ -133,6 +133,15 @@ export default function TeacherResultsPage() {
     });
   }, [sheet.students, search]);
 
+  const filteredModules = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return modules;
+    return modules.filter((item) =>
+      [item.module_name, item.module_code, item.class_level, item.term]
+        .some((value) => String(value || "").toLowerCase().includes(q))
+    );
+  }, [modules, search]);
+
   const setMark = (studentId, key, value) => {
     const v = value === "" ? "" : value;
     setMarks((prev) => ({ ...prev, [studentId]: { ...(prev[studentId] || {}), [key]: v } }));
@@ -238,6 +247,14 @@ export default function TeacherResultsPage() {
     { id: "marks", label: "Enter Marks", icon: "✎" },
     { id: "reports", label: "View Reports", icon: "▥" },
   ];
+  const activeSection = navItems.find((item) => item.id === section);
+  const pageSubtitle = {
+    dashboard: "Manage your classes and student results",
+    modules: "Review modules assigned to your account",
+    marks: "Enter, save, and submit marks for your assigned class",
+    reports: "Preview results for your assigned modules",
+  }[section] || "Teacher workspace";
+  const searchLabel = section === "modules" ? "Search modules" : "Search students";
 
   return (
     <div className="ab">
@@ -266,6 +283,7 @@ export default function TeacherResultsPage() {
               key={item.id}
               type="button"
               className={`ab-nav-btn${section === item.id ? " is-active" : ""}`}
+              aria-current={section === item.id ? "page" : undefined}
               onClick={() => setSection(item.id)}
             >
               <span>{item.icon}</span>
@@ -283,16 +301,16 @@ export default function TeacherResultsPage() {
       <div className="ab-main">
         <header className="ab-topbar">
           <div className="ab-topbar-left">
-            <h1>Teacher Dashboard</h1>
-            <p>Manage your classes and student results</p>
+            <h1>{section === "dashboard" ? "Teacher Dashboard" : activeSection?.label || "Teacher Dashboard"}</h1>
+            <p>{pageSubtitle}</p>
           </div>
           <div className="ab-topbar-right">
             <label className="ab-global-search">
-              <span className="ab-sr-only">Search students</span>
+              <span className="ab-sr-only">{searchLabel}</span>
               <span aria-hidden>⌕</span>
               <input
                 type="search"
-                placeholder="Search students"
+                placeholder={searchLabel}
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -312,59 +330,59 @@ export default function TeacherResultsPage() {
           <div className={`ab-banner ${error ? "is-error" : "is-ok"}`}>{error || notice}</div>
         )}
 
-        {/* Welcome */}
-        <section className="ab-welcome">
-          <div>
-            <h2>
-              <span className="ab-grad-icon">🎓</span> Welcome, {user?.full_name || user?.username || "Teacher"}!
-            </h2>
-            <p>Prepare and submit marks for your assigned classes.</p>
-          </div>
-          <div className="ab-welcome-chip">
-            <div>
-              <small>Module</small>
-              <strong>{module?.module_name || module?.module_code || "Select a module"}</strong>
-            </div>
-            <div>
-              <small>Class</small>
-              <strong>{module?.class_level || "—"}</strong>
-            </div>
-          </div>
-        </section>
+        {(section === "dashboard" || section === "marks") && (
+          <>
+            <section className="ab-welcome">
+              <div>
+                <h2>
+                  <span className="ab-grad-icon">🎓</span> Welcome, {user?.full_name || user?.username || "Teacher"}!
+                </h2>
+                <p>Prepare and submit marks for your assigned classes.</p>
+              </div>
+              <div className="ab-welcome-chip">
+                <div>
+                  <small>Module</small>
+                  <strong>{module?.module_name || module?.module_code || "Select a module"}</strong>
+                </div>
+                <div>
+                  <small>Class</small>
+                  <strong>{module?.class_level || "—"}</strong>
+                </div>
+              </div>
+            </section>
 
-        {/* KPIs */}
-        <section className="ab-kpis">
-          <div className="ab-kpi">
-            <div className="ab-kpi-icon ab-kpi-blue">👥</div>
-            <div>
-              <small>Total Students</small>
-              <strong>{progress.total || totals.students || 0}</strong>
-            </div>
-          </div>
-          <div className="ab-kpi">
-            <div className="ab-kpi-icon ab-kpi-green">✓</div>
-            <div>
-              <small>Marks complete</small>
-              <strong>
-                {progress.done} / {progress.total || 0}
-              </strong>
-            </div>
-          </div>
-          <div className="ab-kpi">
-            <div className="ab-kpi-icon ab-kpi-amber">⏱</div>
-            <div>
-              <small>Pending</small>
-              <strong>{Math.max(0, (progress.total || 0) - progress.done)}</strong>
-            </div>
-          </div>
-          <div className="ab-kpi">
-            <div className="ab-kpi-icon ab-kpi-purple">▣</div>
-            <div>
-              <small>Completion</small>
-              <strong>{progress.pct}%</strong>
-            </div>
-          </div>
-        </section>
+            <section className="ab-kpis">
+              <div className="ab-kpi">
+                <div className="ab-kpi-icon ab-kpi-blue">👥</div>
+                <div>
+                  <small>Total Students</small>
+                  <strong>{progress.total || totals.students || 0}</strong>
+                </div>
+              </div>
+              <div className="ab-kpi">
+                <div className="ab-kpi-icon ab-kpi-green">✓</div>
+                <div>
+                  <small>Marks complete</small>
+                  <strong>{progress.done} / {progress.total || 0}</strong>
+                </div>
+              </div>
+              <div className="ab-kpi">
+                <div className="ab-kpi-icon ab-kpi-amber">⏱</div>
+                <div>
+                  <small>Pending</small>
+                  <strong>{Math.max(0, (progress.total || 0) - progress.done)}</strong>
+                </div>
+              </div>
+              <div className="ab-kpi">
+                <div className="ab-kpi-icon ab-kpi-purple">▣</div>
+                <div>
+                  <small>Completion</small>
+                  <strong>{progress.pct}%</strong>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
 
         {(section === "dashboard" || section === "marks") && (
           <div className="ab-grid">
@@ -562,7 +580,7 @@ export default function TeacherResultsPage() {
               <h3>My Modules</h3>
             </div>
             <div className="ab-mod-grid">
-              {modules.map((m) => {
+              {filteredModules.map((m) => {
                 const meta = STATUS_META[m.status] || STATUS_META.draft;
                 return (
                   <button
@@ -590,7 +608,11 @@ export default function TeacherResultsPage() {
                   </button>
                 );
               })}
-              {modules.length === 0 && <div className="ab-empty">No modules assigned to your account.</div>}
+              {modules.length === 0 ? (
+                <div className="ab-empty">No modules assigned to your account.</div>
+              ) : filteredModules.length === 0 ? (
+                <div className="ab-empty">No modules match your search.</div>
+              ) : null}
             </div>
           </section>
         )}
@@ -623,7 +645,7 @@ export default function TeacherResultsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(sheet.students || []).map((s, i) => {
+                  {filteredStudents.map((s, i) => {
                     const row = marks[s.id] || {};
                     const total = finalFor(row, module);
                     return (
@@ -795,6 +817,15 @@ export default function TeacherResultsPage() {
         .ab-mod-card strong { display: block; margin-bottom: 4px; }
         .ab-mod-foot { margin-top: 8px; font-size: 12px; color: #64748b; }
         .ab-empty { padding: 28px 12px; text-align: center; color: #64748b; }
+        .ab-main, .ab-card, .ab-right { min-width: 0; }
+        .ab-table-wrap { max-width: 100%; overscroll-behavior-x: contain; }
+        .ab-table { min-width: 720px; }
+        .ab-table th { color: #526176; }
+        .ab-btn:focus-visible, .ab-qa:focus-visible, .ab-nav-btn:focus-visible,
+        .ab-icon-btn:focus-visible, .ab-mod-card:focus-visible {
+          outline: 3px solid rgba(230,197,106,0.65);
+          outline-offset: 2px;
+        }
         @media (max-width: 1000px) {
           .ab { grid-template-columns: 1fr; }
           .ab-side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -821,6 +852,8 @@ export default function TeacherResultsPage() {
           .ab-global-search { width: 100%; }
           .ab-topbar-user { display: none; }
           .ab-time { display: none; }
+          .ab-select { flex: 1 1 100%; }
+          .ab-card-actions .ab-btn { flex: 1 1 auto; }
           .ab-welcome { padding: 15px; }
           .ab-welcome h2 { font-size: 1.08rem; }
           .ab-welcome-chip { gap: 12px; padding: 8px 10px; }

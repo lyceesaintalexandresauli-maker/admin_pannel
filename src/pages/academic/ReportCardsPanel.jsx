@@ -683,7 +683,7 @@ export default function ReportCardsPanel({ isAdmin = false, canPublish = isAdmin
             <label>
               Password *
               <div className="aw-input-row">
-                <input required type="text" minLength={8} value={teacherForm.password} onChange={(e) => setTeacherForm({ ...teacherForm, password: e.target.value })} placeholder="Min 8 characters" />
+                <input required type="password" autoComplete="new-password" minLength={8} value={teacherForm.password} onChange={(e) => setTeacherForm({ ...teacherForm, password: e.target.value })} placeholder="Min 8 characters" />
                 <button type="button" className="adm-btn adm-btn-light" onClick={() => setTeacherForm((f) => ({ ...f, password: generateTempPassword() }))}>
                   Generate
                 </button>

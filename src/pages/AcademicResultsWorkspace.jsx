@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../styles/admin.css";
 import AcademicOverviewPanel from "./academic/AcademicOverviewPanel";
@@ -10,19 +11,21 @@ import ReportCardsPanel from "./academic/ReportCardsPanel";
 /**
  * Academic Workflow — professional multi-panel hub for Lycee de Muhura.
  * Admin: Overview, Admin Center, Classes & Modules, Report Card
- * Teacher: Overview, Classes & Modules, Report Card (own modules only)
+ * Teacher: Overview and assigned-module results
+ * DOS: publishing dashboard and read-only class results
  */
 const NAV = [
   { id: "overview", label: "Overview", icon: "◈", desc: "KPIs & pipeline", adminOnly: false },
   { id: "admin", label: "Admin Center", icon: "⚙", desc: "Students & staff", adminOnly: true },
-  { id: "classes", label: "Classes & Modules", icon: "▤", desc: "Curriculum catalog", adminOnly: false },
+  { id: "classes", label: "Classes & Modules", icon: "▤", desc: "Curriculum catalog", adminOnly: true },
   { id: "reports", label: "Report Card", icon: "▣", desc: "Marks & approval", adminOnly: false },
 ];
 
 export default function AcademicResultsWorkspace({ isAdmin = false, isDos = false, embedded = false }) {
-  const { isAdmin: authIsAdmin, user } = useAuth();
+  const { isAdmin: authIsAdmin, user, logout } = useAuth();
+  const navigate = useNavigate();
   const admin = isAdmin || authIsAdmin;
-  const dos = isDos || String(user?.role || "").toLowerCase() === "dos";
+  const dos = isDos || String(user?.role || "").trim().toLowerCase() === "dos";
   const canPublish = admin || dos;
 
   const items = useMemo(() => {
@@ -46,13 +49,18 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
   const title = admin
     ? "Academic Workflow"
     : dos
-      ? "DOS Panel"
+      ? "DOS Dashboard"
       : "Teacher Academic Workspace";
   const subtitle = admin
     ? "Overview · Admin Center · Classes & Modules · Report Card"
     : dos
       ? "Publish Student Marks · Class results"
       : "Overview · Classes & Modules · Your marks & submissions";
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className={`awf ${embedded ? "awf-embedded" : ""}`}>
@@ -64,8 +72,16 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
             <p className="awf-lead">{subtitle}</p>
           </div>
           <div className="awf-hero-meta">
-            <div className="awf-pill">{admin ? "Administrator" : dos ? "Director of Studies" : "Teacher"}</div>
-            <div className="awf-user">{user?.full_name || user?.username || "Signed in"}</div>
+            <div className="awf-identity">
+              <div className="awf-pill">{admin ? "Administrator" : dos ? "Director of Studies" : "Teacher"}</div>
+              <div className="awf-user">{user?.full_name || user?.username || "Signed in"}</div>
+            </div>
+            {!embedded && (
+              <button type="button" className="awf-logout" onClick={handleLogout}>
+                <span aria-hidden="true">⏻</span>
+                Log out
+              </button>
+            )}
           </div>
         </header>
       )}
@@ -79,6 +95,7 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
                 type="button"
                 className={`awf-nav-item${tab === item.id ? " is-active" : ""}`}
                 onClick={() => setTab(item.id)}
+                aria-current={tab === item.id ? "page" : undefined}
               >
                 <span className="awf-nav-icon" aria-hidden>
                   {item.icon}
@@ -113,7 +130,7 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
               )
             )}
             {tab === "admin" && admin && <AdminCenterPanel />}
-            {tab === "classes" && !dos && <ClassesModulesPanel />}
+            {tab === "classes" && admin && <ClassesModulesPanel />}
             {tab === "reports" && (
               <ReportCardsPanel isAdmin={admin} canPublish={canPublish} initialModuleId={reportFocusModuleId} />
             )}
@@ -164,7 +181,8 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
           font-size: 0.95rem;
           max-width: 520px;
         }
-        .awf-hero-meta { text-align: right; }
+        .awf-hero-meta { display: flex; align-items: center; justify-content: flex-end; gap: 12px; text-align: right; }
+        .awf-identity { display: grid; justify-items: end; gap: 4px; }
         .awf-pill {
           display: inline-block;
           padding: 4px 12px;
@@ -175,6 +193,24 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
           font-weight: 700;
         }
         .awf-user { margin-top: 6px; font-size: 13px; color: #64748b; font-weight: 600; }
+        .awf-logout {
+          display: inline-flex;
+          min-height: 40px;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          padding: 8px 12px;
+          border: 1px solid #d5e0ed;
+          border-radius: 10px;
+          background: #fff;
+          color: #18395f;
+          font: inherit;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .awf-logout:hover { border-color: #c8a63e; background: #fffaf0; }
+        .awf-logout:focus-visible { outline: 3px solid rgba(230,197,106,0.55); outline-offset: 2px; }
         .awf-layout {
           max-width: 1280px;
           margin: 0 auto;
@@ -256,10 +292,23 @@ export default function AcademicResultsWorkspace({ isAdmin = false, isDos = fals
         @media (max-width: 900px) {
           .awf-layout { grid-template-columns: 1fr; }
           .awf-side { position: static; }
-          .awf-nav { flex-direction: row; flex-wrap: wrap; }
-          .awf-nav-item { flex: 1 1 140px; }
+          .awf-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
+          .awf-nav-item { flex: 0 0 auto; min-width: 150px; }
           .awf-side-foot { display: none; }
-          .awf-hero-meta { text-align: left; }
+          .awf-hero-meta { justify-content: space-between; text-align: left; }
+          .awf-identity { justify-items: start; }
+        }
+        @media (max-width: 640px) {
+          .awf { padding: 12px 10px 24px; }
+          .awf-hero { gap: 10px; margin-bottom: 12px; }
+          .awf-hero h1 { font-size: 1.4rem; }
+          .awf-layout { gap: 10px; }
+          .awf-side { padding: 8px; border-radius: 12px; }
+          .awf-nav-item { min-width: 132px; padding: 9px; }
+          .awf-nav-copy small { display: none; }
+          .awf-main { min-height: 0; border-radius: 12px; }
+          .awf-main-bar { padding: 12px 14px; }
+          .awf-content { padding: 12px; }
         }
       `}</style>
     </div>
