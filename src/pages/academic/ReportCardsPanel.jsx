@@ -79,7 +79,7 @@ const emptyAssign = () => ({
   exam_weight: 50,
 });
 
-export default function ReportCardsPanel({ isAdmin = false }) {
+export default function ReportCardsPanel({ isAdmin = false, initialModuleId = null }) {
   const { user } = useAuth();
   const [modules, setModules] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -114,6 +114,9 @@ export default function ReportCardsPanel({ isAdmin = false }) {
   const [filter, setFilter] = useState({ academic_year: "", term: "" });
   const [activeTab, setActiveTab] = useState(isAdmin ? "teachers" : "modules");
   const [tablesReady, setTablesReady] = useState(null);
+  const [bootModuleId] = useState(initialModuleId);
+
+
 
   const isActiveTeacher = (u) => {
     const role = String(u?.role || "").toLowerCase().trim();
@@ -586,6 +589,14 @@ export default function ReportCardsPanel({ isAdmin = false }) {
         { id: "modules", label: "My classes" },
         { id: "sheet", label: "Marks sheet" },
       ];
+
+  useEffect(() => {
+    if (bootModuleId) {
+      openSheet(String(bootModuleId));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bootModuleId]);
+
 
   return (
     <section className="adm-academic-workspace aw-root">
