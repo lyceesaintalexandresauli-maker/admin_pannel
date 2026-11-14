@@ -79,7 +79,7 @@ const emptyAssign = () => ({
   exam_weight: 50,
 });
 
-export default function ReportCardsPanel({ isAdmin = false, initialModuleId = null }) {
+export default function ReportCardsPanel({ isAdmin = false, canPublish = isAdmin, initialModuleId = null }) {
   const { user } = useAuth();
   const [modules, setModules] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -101,6 +101,7 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
     password: "",
     full_name: "",
     phone: "",
+    role: "teacher",
   });
   const [studentForm, setStudentForm] = useState({
     student_code: "",
@@ -282,17 +283,17 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
         password: teacherForm.password,
         full_name: teacherForm.full_name.trim() || null,
         phone: teacherForm.phone.trim() || null,
-        role: "teacher",
+        role: teacherForm.role,
       });
       const profile = created?.data && !Array.isArray(created.data) ? created.data : null;
-      if (profile?.id) {
+      if (profile?.id && teacherForm.role === "teacher") {
         setTeachers((prev) => {
           const without = prev.filter((t) => Number(t.id) !== Number(profile.id));
-          return [...without, { ...profile, role: "teacher", is_active: true }];
+          return [...without, { ...profile, role: teacherForm.role, is_active: true }];
         });
       }
-      setNotice(`Teacher registered. Login: ${email}`);
-      setTeacherForm({ username: "", email: "", password: "", full_name: "", phone: "" });
+      setNotice(`${teacherForm.role === "dos" ? "Director of Studies" : "Teacher"} registered. Login: ${email}`);
+      setTeacherForm({ username: "", email: "", password: "", full_name: "", phone: "", role: "teacher" });
       await loadTeachers();
     } catch (requestError) {
       setError(getApiError(requestError, "Could not register teacher."));
@@ -573,7 +574,7 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
   };
 
   const moduleStatus = sheet.module?.status || "draft";
-  const canEdit = isAdmin || moduleStatus === "draft" || moduleStatus === "returned";
+  const canEdit = isAdmin || (!canPublish && (moduleStatus === "draft" || moduleStatus === "returned"));
   const stats = dashboard?.stats || {};
   const yearChoices = [currentAcademicYear(), String(new Date().getFullYear()), String(new Date().getFullYear() - 1)];
 
@@ -586,7 +587,7 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
         { id: "sheet", label: "Marks sheet" },
       ]
     : [
-        { id: "modules", label: "My classes" },
+        { id: "modules", label: canPublish ? "Class results" : "My classes" },
         { id: "sheet", label: "Marks sheet" },
       ];
 
@@ -656,8 +657,8 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
         <div className="aw-panel">
           <div className="aw-panel-head">
             <div>
-              <h2>Register teacher</h2>
-              <p>Creates a teacher account. Role is fixed to teacher.</p>
+              <h2>Register staff account</h2>
+              <p>Choose whether this staff account will teach classes or publish results as DOS.</p>
             </div>
           </div>
           <form onSubmit={registerTeacher} className="aw-form" noValidate>
@@ -692,9 +693,16 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
               Phone
               <input value={teacherForm.phone} onChange={(e) => setTeacherForm({ ...teacherForm, phone: e.target.value })} placeholder="07…" />
             </label>
+            <label>
+              Staff role *
+              <select required value={teacherForm.role} onChange={(e) => setTeacherForm({ ...teacherForm, role: e.target.value })}>
+                <option value="teacher">Teacher</option>
+                <option value="dos">Director of Studies (DOS)</option>
+              </select>
+            </label>
             <div className="aw-form-actions">
               <button type="submit" className="adm-btn" disabled={saving}>
-                {saving ? "Saving…" : "Register teacher"}
+                {saving ? "Saving…" : "Register staff account"}
               </button>
             </div>
           </form>
@@ -936,8 +944,8 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
         <div className="aw-panel">
           <div className="aw-panel-head">
             <div>
-              <h2>{isAdmin ? "Assigned modules" : "My assigned classes"}</h2>
-              <p>{isAdmin ? "Assignments are locked after creation (unique per class and term)." : "Open a sheet to enter professional marks."}</p>
+              <h2>{isAdmin || canPublish ? "Assigned modules" : "My assigned classes"}</h2>
+              <p>{isAdmin ? "Assignments are locked after creation (unique per class and term)." : canPublish ? "Review class progress and publish results after generation." : "Open a sheet to enter professional marks."}</p>
             </div>
           </div>
 
@@ -960,7 +968,7 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
                   </ul>
                 </div>
               ))}
-              {levelsGrouped.length === 0 && !loading && <p className="aw-empty">No modules assigned to you yet.</p>}
+              {levelsGrouped.length === 0 && !loading && <p className="aw-empty">{canPublish ? "No active modules found." : "No modules assigned to you yet."}</p>}
             </div>
           )}
 
@@ -990,7 +998,7 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
                 <tr>
                   <th>Module</th>
                   <th>Class</th>
-                  {isAdmin && <th>Teacher</th>}
+                  {(isAdmin || canPublish) && <th>Teacher</th>}
                   <th>Year / Term</th>
                   <th>Students</th>
                   <th>Status</th>
@@ -1005,7 +1013,7 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
                       <div className="aw-muted">{m.module_code}</div>
                     </td>
                     <td>{getLevelLabel(m.class_level)}</td>
-                    {isAdmin && <td>{m.teacher_name || "—"}</td>}
+                    {(isAdmin || canPublish) && <td>{m.teacher_name || "—"}</td>}
                     <td>
                       {m.academic_year} · {m.term}
                     </td>
@@ -1082,14 +1090,19 @@ export default function ReportCardsPanel({ isAdmin = false, initialModuleId = nu
                     </>
                   )}
                   {isAdmin && (moduleStatus === "approved" || moduleStatus === "generated") && (
-                    <>
-                      <button type="button" className="adm-btn" disabled={saving} onClick={generateResults}>
-                        Generate
-                      </button>
-                      <button type="button" className="adm-btn" disabled={saving} onClick={publishResults}>
-                        Publish
-                      </button>
-                    </>
+                    <button type="button" className="adm-btn" disabled={saving} onClick={generateResults}>
+                      Generate
+                    </button>
+                  )}
+                  {isAdmin && moduleStatus === "generated" && (
+                    <button type="button" className="adm-btn" disabled={saving} onClick={publishResults}>
+                      Publish
+                    </button>
+                  )}
+                  {canPublish && !isAdmin && moduleStatus === "generated" && (
+                    <button type="button" className="adm-btn" disabled={saving} onClick={publishResults}>
+                      Publish results
+                    </button>
                   )}
                   {isAdmin && (
                     <button type="button" className="adm-btn adm-btn-light" disabled={saving} onClick={() => adminAction(sheet.module, "reopen", "Reopened for editing.")}>

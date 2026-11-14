@@ -2621,7 +2621,7 @@
   padding: 0.85rem 1rem;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
-.aw-stat-value { font-size: 1.35rem; font-weight: 700; color: #1e3a5f; line-height: 1.2; }
+.aw-stat-value { font-size: 1.35rem; font-weight: 700; color: #8a6400; line-height: 1.2; }
 .aw-stat-label { font-size: 0.78rem; color: #6b7280; margin-top: 0.15rem; }
 .aw-tabs {
   display: flex;
@@ -2641,11 +2641,11 @@
   cursor: pointer;
   font-weight: 500;
 }
-.aw-tab:hover { background: #f3f0e8; }
+.aw-tab:hover { background: #fff8e4; }
 .aw-tab-active {
-  background: #1e3a5f;
-  color: #fff;
-  border-color: #1e3a5f;
+  background: #e6c56a;
+  color: #302500;
+  border-color: #c8a63e;
 }
 .aw-tab-ghost { margin-left: auto; color: #6b7280; }
 .aw-panel {
@@ -2656,7 +2656,7 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .aw-panel-head { margin-bottom: 1rem; }
-.aw-panel-head h2 { margin: 0 0 0.25rem; font-size: 1.2rem; color: #1e3a5f; }
+.aw-panel-head h2 { margin: 0 0 0.25rem; font-size: 1.2rem; color: #6f5200; }
 .aw-panel-head p { margin: 0; color: #6b7280; font-size: 0.9rem; }
 .aw-form {
   display: grid;
@@ -2684,13 +2684,13 @@
 .aw-form input:focus,
 .aw-form select:focus {
   outline: none;
-  border-color: #1e3a5f;
-  box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
+  border-color: #c8a63e;
+  box-shadow: 0 0 0 3px rgba(230, 197, 106, 0.24);
 }
 .aw-hint { font-weight: 400; font-size: 0.75rem; color: #9ca3af; }
 .aw-form-actions { display: flex; align-items: end; }
 .aw-divider { height: 1px; background: #e8e4d9; margin: 1.25rem 0; }
-.aw-subhead { margin: 0 0 0.75rem; font-size: 1rem; color: #1e3a5f; }
+.aw-subhead { margin: 0 0 0.75rem; font-size: 1rem; color: #6f5200; }
 .aw-empty { color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 0.75rem 1rem; margin: 0; }
 .aw-note {
   margin-top: 1rem;
@@ -2735,13 +2735,13 @@
   border: 1px solid #e8e4d9;
   border-radius: 10px;
   padding: 0.85rem 1rem;
-  background: #fafaf8;
+  background: #fffdf7;
 }
 .aw-level-card ul { margin: 0.5rem 0 0; padding-left: 1rem; }
 .aw-link {
   background: none;
   border: none;
-  color: #1d4ed8;
+  color: #8a6400;
   cursor: pointer;
   padding: 0;
   text-align: left;
@@ -2755,10 +2755,20 @@
   margin-bottom: 1rem;
   align-items: flex-start;
 }
-.aw-sheet-head h2 { margin: 0 0 0.25rem; font-size: 1.15rem; color: #1e3a5f; }
+.aw-sheet-head h2 { margin: 0 0 0.25rem; font-size: 1.15rem; color: #6f5200; }
 .aw-sheet-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .aw-review-note { color: #b45309; margin: 0.35rem 0 0; font-size: 0.9rem; }
 
+.aw-root .adm-btn:not(.adm-btn-light):not(.adm-btn-warning):not(.adm-btn-danger) {
+  background: #e6c56a;
+  border-color: #c8a63e;
+  color: #302500;
+}
+.aw-root .adm-btn:not(.adm-btn-light):not(.adm-btn-warning):not(.adm-btn-danger):hover {
+  background: #d6b04c;
+}
+.aw-root .adm-table th { background: #fff8e4; }
+.aw-root .adm-row-active { background: #fff8e4; }
 .aw-input-row {
   display: flex;
   gap: 0.4rem;

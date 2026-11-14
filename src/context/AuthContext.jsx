@@ -255,20 +255,22 @@ export function AuthProvider({ children }) {
     await hardResetAuthState();
   };
 
+  const role = String(user?.role || "").trim().toLowerCase();
   const value = useMemo(
     () => ({
       user,
       token,
       isAuthenticated: !!token,
-      isAdmin: String(user?.role || "").toLowerCase() === "admin",
-      isTeacher: user?.role === "teacher",
+      isAdmin: role === "admin",
+      isDos: role === "dos",
+      isTeacher: role === "teacher",
       isReady,
       authConfigError,
       loginStep1,
       refreshMe,
       logout,
     }),
-    [authConfigError, isReady, token, user]
+    [authConfigError, isReady, role, token, user]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

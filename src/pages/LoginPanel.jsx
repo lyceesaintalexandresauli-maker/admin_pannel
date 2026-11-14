@@ -12,7 +12,13 @@ export default function LoginPanel() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const destinationForRole = (role) => role === "teacher" ? "/teacher-results" : "/admin";
+  const destinationForRole = (role) => {
+    const normalizedRole = String(role || "").trim().toLowerCase();
+    if (normalizedRole === "teacher") return "/teacher-results";
+    if (normalizedRole === "dos") return "/academic-workflow";
+    if (normalizedRole === "admin") return "/admin";
+    return "/profile";
+  };
 
   if (!isReady) {
     return (
@@ -25,7 +31,7 @@ export default function LoginPanel() {
     );
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && user) {
     return <Navigate to={destinationForRole(user?.role)} replace />;
   }
 

@@ -15,7 +15,7 @@ const STATUS_META = {
 /**
  * Academic Overview — live KPIs and recent module activity from /academic/dashboard
  */
-export default function AcademicOverviewPanel({ isAdmin = false, onOpenModule, onNavigate }) {
+export default function AcademicOverviewPanel({ isAdmin = false, isDos = false, onOpenModule, onNavigate }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,8 +39,8 @@ export default function AcademicOverviewPanel({ isAdmin = false, onOpenModule, o
   }, [load]);
 
   const stats = data?.stats || data || {};
-  const recent = data?.recent || data?.modules || [];
-  const teachersNotSubmitted = data?.teachersNotSubmitted || [];
+  const recent = data?.recent || data?.recent_activity || data?.modules || [];
+  const teachersNotSubmitted = data?.teachersNotSubmitted || data?.teachers_not_submitted || [];
 
   const cards = [
     { key: "students", label: "Active students", value: stats.total_students, hint: "Enrolled & active", tone: "blue" },
@@ -166,17 +166,26 @@ export default function AcademicOverviewPanel({ isAdmin = false, onOpenModule, o
             {!isAdmin && (
               <section className="aov-panel">
                 <div className="aov-panel-head">
-                  <h3>Teacher quick guide</h3>
+                  <h3>{isDos ? "Results publishing workflow" : "Teacher quick guide"}</h3>
                 </div>
-                <ol className="aov-steps">
-                  <li>Open <strong>Report Card</strong> → My classes</li>
-                  <li>Select a module to open the marks sheet</li>
-                  <li>Enter CAT, Practical, and Exam scores</li>
-                  <li>Save, then <strong>Submit</strong> for admin review</li>
-                  <li>If returned, correct and resubmit</li>
-                </ol>
+                {isDos ? (
+                  <ol className="aov-steps">
+                    <li>Open <strong>Report Card</strong> → Assigned modules</li>
+                    <li>Check each module is marked <strong>Generated</strong></li>
+                    <li>Open a generated module and confirm its class, year, and term</li>
+                    <li>Choose <strong>Publish results</strong> to make the class results visible</li>
+                  </ol>
+                ) : (
+                  <ol className="aov-steps">
+                    <li>Open <strong>Report Card</strong> → My classes</li>
+                    <li>Select a module to open the marks sheet</li>
+                    <li>Enter CAT, Practical, and Exam scores</li>
+                    <li>Save, then <strong>Submit</strong> for admin review</li>
+                    <li>If returned, correct and resubmit</li>
+                  </ol>
+                )}
                 <button type="button" className="aov-btn aov-btn-primary" onClick={() => onNavigate?.("reports")}>
-                  Go to my modules
+                  {isDos ? "Review class results" : "Go to my modules"}
                 </button>
               </section>
             )}
@@ -191,18 +200,18 @@ export default function AcademicOverviewPanel({ isAdmin = false, onOpenModule, o
         .aov-head p { margin: 4px 0 0; color: #64748b; font-size: 0.9rem; }
         .aov-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
         .aov-btn:hover { background: #f8fafc; }
-        .aov-btn-primary { background: #1f5eff; color: #fff; border-color: #1f5eff; }
-        .aov-btn-primary:hover { background: #1a4fd6; }
+        .aov-btn-primary { background: #e6c56a; color: #302500; border-color: #c8a63e; }
+        .aov-btn-primary:hover { background: #d6b04c; }
         .aov-alert { padding: 10px 14px; border-radius: 10px; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; margin-bottom: 14px; font-size: 14px; }
         .aov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
         .aov-card { border-radius: 14px; padding: 14px 16px; border: 1px solid #e2e8f0; background: #fff; }
         .aov-card-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #64748b; font-weight: 600; }
         .aov-card-value { font-size: 1.6rem; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
         .aov-card-hint { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-        .aov-card-blue { border-color: #bfdbfe; background: linear-gradient(160deg, #eff6ff, #fff); }
-        .aov-card-indigo { border-color: #c7d2fe; background: linear-gradient(160deg, #eef2ff, #fff); }
-        .aov-card-violet { border-color: #ddd6fe; background: linear-gradient(160deg, #f5f3ff, #fff); }
-        .aov-card-sky { border-color: #bae6fd; background: linear-gradient(160deg, #f0f9ff, #fff); }
+        .aov-card-blue { border-color: #ead89e; background: linear-gradient(160deg, #fff8df, #fff); }
+        .aov-card-indigo { border-color: #e8ddb9; background: linear-gradient(160deg, #fffaf0, #fff); }
+        .aov-card-violet { border-color: #eadfbd; background: linear-gradient(160deg, #fffdf5, #fff); }
+        .aov-card-sky { border-color: #eddfb5; background: linear-gradient(160deg, #fffaf0, #fff); }
         .aov-card-slate { border-color: #e2e8f0; }
         .aov-card-amber { border-color: #fde68a; background: linear-gradient(160deg, #fffbeb, #fff); }
         .aov-card-rose { border-color: #fecdd3; background: linear-gradient(160deg, #fff1f2, #fff); }
@@ -212,7 +221,7 @@ export default function AcademicOverviewPanel({ isAdmin = false, onOpenModule, o
         .aov-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; }
         .aov-panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
         .aov-panel-head h3 { margin: 0; font-size: 1rem; }
-        .aov-link { border: none; background: none; color: #1f5eff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .aov-link { border: none; background: none; color: #9a6b00; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
         .aov-list { list-style: none; margin: 0; padding: 0; }
         .aov-list-item { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; padding: 12px 10px; border: none; border-bottom: 1px solid #f1f5f9; background: transparent; cursor: pointer; font: inherit; border-radius: 8px; }
         .aov-list-item:hover { background: #f8fafc; }

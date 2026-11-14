@@ -77,6 +77,10 @@ Administrators can open **Student Results** in the dashboard to add or edit subj
 
 Run `migrations/2026-10-20_student_results.sql` in the backend project against an existing database before deploying these changes.
 
+## Academic Workflow
+
+The Academic Workflow uses a yellow-and-white workspace for class modules, marks entry, review, and results. Admins can register staff as **Teacher** or **Director of Studies (DOS)**. Teachers can edit and submit marks for their assigned modules. DOS accounts have read-only access to class modules and can publish class results only after every module has been generated; admins retain staff/module management, approval, and generation permissions.
+
 ## Smart Management and meetings
 
 The React admin panel includes a meetings workspace backed by the Smart Management Flask service. Set `VITE_SMART_MANAGEMENT_API_BASE_URL` to that service's HTTPS base URL (HTTP is allowed only for localhost during development). On the Flask service, set `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the same Supabase project configured for this React app, and set `ADMIN_PANEL_ORIGINS` to the exact deployed admin-panel origin(s).

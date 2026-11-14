@@ -21,17 +21,22 @@ function RouteLoading() {
 }
 
 function ProtectedRoute({ children, requireAdmin = false, requireTeacher = false }) {
-  const { isAuthenticated, isAdmin, isTeacher } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (requireAdmin && !isAdmin) return <Navigate to={isTeacher ? "/teacher-results" : "/profile"} replace />;
-  if (requireTeacher && !isTeacher) return <Navigate to={isAdmin ? "/admin" : "/profile"} replace />;
+  const { isAuthenticated, user, isAdmin, isDos, isTeacher } = useAuth();
+  if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to={isTeacher ? "/teacher-results" : isDos ? "/academic-workflow" : "/profile"} replace />;
+  }
+  if (requireTeacher && !isTeacher) {
+    return <Navigate to={isAdmin ? "/admin" : isDos ? "/academic-workflow" : "/profile"} replace />;
+  }
   return children;
 }
 
-/** Academic workflow: admin gets full control; teachers get their own sheet only. */
+/** Admins manage the workflow, teachers submit assigned marks, and DOS publishes results. */
 function AcademicWorkflowRoute() {
-  const { isAdmin } = useAuth();
-  return <AcademicWorkflowPage isAdmin={isAdmin} />;
+  const { isAdmin, isDos, isTeacher } = useAuth();
+  if (!isAdmin && !isDos && !isTeacher) return <Navigate to="/profile" replace />;
+  return <AcademicWorkflowPage isAdmin={isAdmin} isDos={isDos} />;
 }
 
 function App() {

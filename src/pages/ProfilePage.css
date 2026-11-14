@@ -1,0 +1,125 @@
+.profile-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(230, 197, 106, 0.22), transparent 28rem),
+    #f8f6ef;
+  color: #242117;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.profile-card {
+  width: min(100%, 42rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid #eee4c9;
+  border-radius: 1.25rem;
+  background: #fff;
+  box-shadow: 0 1.25rem 3.5rem rgba(54, 43, 16, 0.1);
+}
+
+.profile-heading {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f1ead8;
+}
+
+.profile-eyebrow {
+  color: #8a6400;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.profile-heading h1 {
+  margin: 0.35rem 0;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.profile-heading p {
+  margin: 0;
+  color: #716b5a;
+}
+
+.profile-details {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.profile-details > div {
+  padding: 1rem 1.1rem;
+  border: 1px solid #f0eadb;
+  border-radius: 0.85rem;
+  background: #fffdf8;
+}
+
+.profile-details dt {
+  color: #716b5a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-details dd {
+  margin: 0.3rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.profile-role {
+  text-transform: capitalize;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1ead8;
+}
+
+.profile-button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.profile-button:hover {
+  transform: translateY(-1px);
+}
+
+.profile-button:focus-visible {
+  outline: 3px solid rgba(200, 166, 62, 0.42);
+  outline-offset: 2px;
+}
+
+.profile-button-primary {
+  border-color: #c8a63e;
+  background: #e6c56a;
+  color: #302500;
+}
+
+.profile-button-primary:hover {
+  background: #d6b04c;
+}
+
+.profile-button-secondary {
+  border-color: #e6dfce;
+  background: #fff;
+  color: #4a4538;
+}
+
+.profile-button-secondary:hover {
+  background: #fff8e4;
+}

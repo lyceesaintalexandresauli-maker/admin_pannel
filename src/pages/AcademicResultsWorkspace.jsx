@@ -4,6 +4,7 @@ import "../styles/admin.css";
 import AcademicOverviewPanel from "./academic/AcademicOverviewPanel";
 import AdminCenterPanel from "./academic/AdminCenterPanel";
 import ClassesModulesPanel from "./academic/ClassesModulesPanel";
+import DOSPublishingPanel from "./academic/DOSPublishingPanel";
 import ReportCardsPanel from "./academic/ReportCardsPanel";
 
 /**
@@ -18,11 +19,22 @@ const NAV = [
   { id: "reports", label: "Report Card", icon: "▣", desc: "Marks & approval", adminOnly: false },
 ];
 
-export default function AcademicResultsWorkspace({ isAdmin = false, embedded = false }) {
+export default function AcademicResultsWorkspace({ isAdmin = false, isDos = false, embedded = false }) {
   const { isAdmin: authIsAdmin, user } = useAuth();
   const admin = isAdmin || authIsAdmin;
+  const dos = isDos || String(user?.role || "").toLowerCase() === "dos";
+  const canPublish = admin || dos;
 
-  const items = useMemo(() => NAV.filter((n) => !n.adminOnly || admin), [admin]);
+  const items = useMemo(() => {
+    if (admin) return NAV;
+    if (dos) {
+      return [
+        { id: "overview", label: "Dashboard", icon: "⌂", desc: "Publish results" },
+        { id: "reports", label: "Class modules", icon: "▤", desc: "Review module status" },
+      ];
+    }
+    return NAV.filter((item) => !item.adminOnly);
+  }, [admin, dos]);
   const [tab, setTab] = useState("overview");
   const [reportFocusModuleId, setReportFocusModuleId] = useState(null);
 
@@ -31,10 +43,16 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
     setTab("reports");
   };
 
-  const title = admin ? "Academic Workflow" : "Teacher Academic Workspace";
+  const title = admin
+    ? "Academic Workflow"
+    : dos
+      ? "DOS Panel"
+      : "Teacher Academic Workspace";
   const subtitle = admin
     ? "Overview · Admin Center · Classes & Modules · Report Card"
-    : "Overview · Classes & Modules · Your marks & submissions";
+    : dos
+      ? "Publish Student Marks · Class results"
+      : "Overview · Classes & Modules · Your marks & submissions";
 
   return (
     <div className={`awf ${embedded ? "awf-embedded" : ""}`}>
@@ -46,7 +64,7 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
             <p className="awf-lead">{subtitle}</p>
           </div>
           <div className="awf-hero-meta">
-            <div className="awf-pill">{admin ? "Administrator" : "Teacher"}</div>
+            <div className="awf-pill">{admin ? "Administrator" : dos ? "Director of Studies" : "Teacher"}</div>
             <div className="awf-user">{user?.full_name || user?.username || "Signed in"}</div>
           </div>
         </header>
@@ -84,16 +102,20 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           </div>
           <div className="awf-content">
             {tab === "overview" && (
-              <AcademicOverviewPanel
-                isAdmin={admin}
-                onNavigate={setTab}
-                onOpenModule={openModuleInReports}
-              />
+              dos ? (
+                <DOSPublishingPanel />
+              ) : (
+                <AcademicOverviewPanel
+                  isAdmin={admin}
+                  onNavigate={setTab}
+                  onOpenModule={openModuleInReports}
+                />
+              )
             )}
             {tab === "admin" && admin && <AdminCenterPanel />}
-            {tab === "classes" && <ClassesModulesPanel />}
+            {tab === "classes" && !dos && <ClassesModulesPanel />}
             {tab === "reports" && (
-              <ReportCardsPanel isAdmin={admin} initialModuleId={reportFocusModuleId} />
+              <ReportCardsPanel isAdmin={admin} canPublish={canPublish} initialModuleId={reportFocusModuleId} />
             )}
           </div>
         </main>
@@ -103,9 +125,8 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
         .awf {
           min-height: 100vh;
           background:
-            radial-gradient(ellipse 80% 50% at 10% -10%, rgba(31, 94, 255, 0.12), transparent),
-            radial-gradient(ellipse 60% 40% at 100% 0%, rgba(230, 197, 106, 0.18), transparent),
-            linear-gradient(180deg, #f4f7fc 0%, #eef2f7 100%);
+            radial-gradient(ellipse 80% 50% at 10% -10%, rgba(230, 197, 106, 0.17), transparent),
+            linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
           padding: 20px 18px 40px;
           color: #0f172a;
         }
@@ -129,7 +150,7 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #1f5eff;
+          color: #9a6b00;
         }
         .awf-hero h1 {
           margin: 6px 0 0;
@@ -148,8 +169,8 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           display: inline-block;
           padding: 4px 12px;
           border-radius: 999px;
-          background: #1f5eff;
-          color: #fff;
+          background: #f0c64d;
+          color: #332600;
           font-size: 12px;
           font-weight: 700;
         }
@@ -163,11 +184,11 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           align-items: start;
         }
         .awf-side {
-          background: #fff;
-          border: 1px solid #e2e8f0;
+          background: linear-gradient(180deg, #0c2d5b 0%, #082144 100%);
+          border: 1px solid #153967;
           border-radius: 18px;
           padding: 12px;
-          box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 10px 24px rgba(8, 33, 68, 0.18);
           position: sticky;
           top: 12px;
         }
@@ -184,14 +205,14 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           background: transparent;
           cursor: pointer;
           font: inherit;
-          color: #475569;
+          color: #dce8f8;
           transition: background 0.15s, color 0.15s;
         }
-        .awf-nav-item:hover { background: #f1f5f9; color: #0f172a; }
+        .awf-nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .awf-nav-item.is-active {
-          background: linear-gradient(135deg, #1f5eff, #3b82f6);
-          color: #fff;
-          box-shadow: 0 8px 20px rgba(31, 94, 255, 0.28);
+          background: linear-gradient(135deg, #e6c56a, #f5d875);
+          color: #302500;
+          box-shadow: 0 8px 20px rgba(230, 197, 106, 0.2);
         }
         .awf-nav-icon {
           width: 28px;
@@ -199,7 +220,7 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           display: grid;
           place-items: center;
           border-radius: 8px;
-          background: rgba(15, 23, 42, 0.06);
+          background: rgba(255, 255, 255, 0.12);
           font-size: 14px;
           flex-shrink: 0;
         }
@@ -211,9 +232,9 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
           margin-top: 14px;
           padding: 12px;
           border-radius: 12px;
-          background: #f8fafc;
+          background: rgba(255,255,255,0.08);
           font-size: 11px;
-          color: #64748b;
+          color: #c1d2e8;
           line-height: 1.45;
         }
         .awf-main {
@@ -226,8 +247,8 @@ export default function AcademicResultsWorkspace({ isAdmin = false, embedded = f
         }
         .awf-main-bar {
           padding: 16px 20px;
-          border-bottom: 1px solid #f1f5f9;
-          background: linear-gradient(180deg, #fafbfc, #fff);
+          border-bottom: 1px solid #e8edf4;
+          background: linear-gradient(180deg, #ffffff, #fbfcfe);
         }
         .awf-main-bar h2 { margin: 0; font-size: 1.1rem; font-weight: 700; }
         .awf-main-bar p { margin: 2px 0 0; font-size: 13px; color: #64748b; }

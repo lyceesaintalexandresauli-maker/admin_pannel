@@ -1,19 +1,27 @@
 import { useAuth } from "../context/AuthContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import "./ProfilePage.css";
+
+const workspaceForRole = (role) => {
+  const normalizedRole = String(role || "").trim().toLowerCase();
+  if (normalizedRole === "admin") return { path: "/admin", label: "Go to Admin Dashboard" };
+  if (normalizedRole === "teacher") return { path: "/teacher-results", label: "Go to Teacher Dashboard" };
+  if (normalizedRole === "dos") return { path: "/academic-workflow", label: "Go to Academic Workspace" };
+  return null;
+};
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const workspace = workspaceForRole(user?.role);
+  const workspacePath = workspace?.path;
 
   useEffect(() => {
-    const role = String(user?.role || "").toLowerCase();
-    if (role === "admin") {
-      navigate("/admin", { replace: true });
-    } else if (role === "teacher") {
-      navigate("/teacher-results", { replace: true });
-    }
-  }, [user, navigate]);
+    if (workspacePath) navigate(workspacePath, { replace: true });
+  }, [workspacePath, navigate]);
+
+  if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
 
   const handleLogout = async () => {
     await logout();
@@ -21,45 +29,46 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-6">Profile</h1>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600">Name</label>
-              <p className="text-lg text-gray-800">{user?.name || "N/A"}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-600">Email</label>
-              <p className="text-lg text-gray-800">{user?.email || "N/A"}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-600">Role</label>
-              <p className="text-lg text-gray-800 capitalize">{user?.role || "N/A"}</p>
-            </div>
-          </div>
+    <main className="profile-page">
+      <section className="profile-card" aria-labelledby="profile-title">
+        <header className="profile-heading">
+          <span className="profile-eyebrow">Staff account</span>
+          <h1 id="profile-title">Profile</h1>
+          <p>Review your account information and open your workspace.</p>
+        </header>
 
-          <div className="mt-8 pt-6 border-t border-gray-200 flex gap-3">
+        <dl className="profile-details">
+          <div>
+            <dt>Name</dt>
+            <dd>{user.full_name || user.name || user.username || "—"}</dd>
+          </div>
+          <div>
+            <dt>Email</dt>
+            <dd>{user.email || "—"}</dd>
+          </div>
+          <div>
+            <dt>Role</dt>
+            <dd className="profile-role">{user.role || "—"}</dd>
+          </div>
+        </dl>
+
+        <div className="profile-actions">
             <button
               onClick={handleLogout}
-              className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              className="profile-button profile-button-secondary"
             >
               Logout
             </button>
-            <button
-              onClick={() => navigate("/admin")}
-              className="bg-[#d4b358] text-slate-900 px-6 py-2 rounded-lg hover:bg-[#c4a448] transition-colors font-semibold"
-            >
-              Go to Admin Dashboard
-            </button>
-          </div>
+            {workspace && (
+              <button
+                onClick={() => navigate(workspace.path)}
+                className="profile-button profile-button-primary"
+              >
+                {workspace.label}
+              </button>
+            )}
         </div>
-
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

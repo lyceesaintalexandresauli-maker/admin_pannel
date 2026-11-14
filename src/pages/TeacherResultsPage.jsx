@@ -36,8 +36,7 @@ const gradeFor = (score) =>
   score == null ? "—" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F";
 
 /**
- * Teacher Dashboard — professional layout inspired by Academic Bridge:
- * sidebar, welcome banner, KPI cards, marks table, progress, quick actions.
+ * Teacher dashboard with class navigation, marks entry, and workflow status.
  */
 export default function TeacherResultsPage() {
   const { user, logout } = useAuth();
@@ -235,8 +234,8 @@ export default function TeacherResultsPage() {
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: "⌂" },
-    { id: "modules", label: "My Module", icon: "▤" },
-    { id: "marks", label: "Prepare Marks", icon: "✎" },
+    { id: "modules", label: "My Classes", icon: "▤" },
+    { id: "marks", label: "Enter Marks", icon: "✎" },
     { id: "reports", label: "View Reports", icon: "▥" },
   ];
 
@@ -245,10 +244,10 @@ export default function TeacherResultsPage() {
       {/* Sidebar */}
       <aside className="ab-side">
         <div className="ab-brand">
-          <div className="ab-logo">🎓</div>
+          <div className="ab-logo"><img src="/img/logo1.jpg" alt="" /></div>
           <div>
-            <strong>Academic Bridge</strong>
-            <small>Results Management</small>
+            <strong>Lycée Saint Alexandre Sauli</strong>
+            <small>Academic Portal</small>
           </div>
         </div>
 
@@ -285,8 +284,23 @@ export default function TeacherResultsPage() {
         <header className="ab-topbar">
           <div className="ab-topbar-left">
             <h1>Teacher Dashboard</h1>
+            <p>Manage your classes and student results</p>
           </div>
           <div className="ab-topbar-right">
+            <label className="ab-global-search">
+              <span className="ab-sr-only">Search students</span>
+              <span aria-hidden>⌕</span>
+              <input
+                type="search"
+                placeholder="Search students"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
+            </label>
+            <div className="ab-topbar-user">
+              <span className="ab-topbar-avatar">{(user?.full_name || user?.username || "T").slice(0, 1).toUpperCase()}</span>
+              <span><strong>{user?.full_name || user?.username || "Teacher"}</strong><small>Teacher</small></span>
+            </div>
             <span className="ab-time">{nowStr}</span>
             <button type="button" className="ab-icon-btn" onClick={loadWorkspace} title="Refresh">
               ↻
@@ -304,7 +318,7 @@ export default function TeacherResultsPage() {
             <h2>
               <span className="ab-grad-icon">🎓</span> Welcome, {user?.full_name || user?.username || "Teacher"}!
             </h2>
-            <p>Prepare marks for your assigned module and class.</p>
+            <p>Prepare and submit marks for your assigned classes.</p>
           </div>
           <div className="ab-welcome-chip">
             <div>
@@ -371,12 +385,6 @@ export default function TeacherResultsPage() {
                       </option>
                     ))}
                   </select>
-                  <input
-                    className="ab-search"
-                    placeholder="Search student…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
                   <button type="button" className="ab-btn ab-btn-light" onClick={exportCsv} disabled={!module}>
                     Export
                   </button>
@@ -646,41 +654,51 @@ export default function TeacherResultsPage() {
           display: grid;
           grid-template-columns: 240px minmax(0, 1fr);
           min-height: 100vh;
-          background: #eef2f7;
+          background: #f3f6fb;
           color: #0f172a;
           font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         }
         .ab-side {
-          background: linear-gradient(180deg, #0b1b33 0%, #122844 100%);
+          background: linear-gradient(180deg, #0c2d5b 0%, #082144 100%);
           color: #e2e8f0;
           padding: 18px 14px;
           display: flex;
           flex-direction: column;
           gap: 16px;
         }
-        .ab-brand { display: flex; gap: 10px; align-items: center; padding: 4px 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .ab-logo { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: grid; place-items: center; font-size: 20px; }
-        .ab-brand strong { display: block; font-size: 14px; color: #fff; }
-        .ab-brand small { color: #94a3b8; font-size: 11px; }
-        .ab-profile { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 14px; background: rgba(255,255,255,0.06); }
-        .ab-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #60a5fa, #2563eb); display: grid; place-items: center; font-weight: 800; color: #fff; border: 2px solid #22c55e; }
-        .ab-online { color: #4ade80; font-size: 11px; font-weight: 600; }
+        .ab-brand { display: flex; gap: 10px; align-items: center; padding: 4px 6px 12px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+        .ab-logo { width: 42px; height: 42px; flex: 0 0 auto; overflow: hidden; border-radius: 12px; background: #fff; display: grid; place-items: center; }
+        .ab-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .ab-brand strong { display: block; max-width: 150px; font-size: 12px; line-height: 1.35; color: #fff; }
+        .ab-brand small { color: #a9bfdc; font-size: 11px; }
+        .ab-profile { display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 14px; background: rgba(255,255,255,0.08); }
+        .ab-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #f4d36d, #d6b04c); display: grid; place-items: center; font-weight: 800; color: #302500; border: 2px solid rgba(255,255,255,0.5); }
+        .ab-online { color: #65e6a3; font-size: 11px; font-weight: 600; }
         .ab-profile strong { display: block; color: #fff; font-size: 13px; }
-        .ab-profile small { color: #94a3b8; font-size: 11px; }
+        .ab-profile small { color: #a9bfdc; font-size: 11px; }
         .ab-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
         .ab-nav-btn {
           display: flex; align-items: center; gap: 10px;
           width: 100%; text-align: left; padding: 11px 12px;
           border: none; border-radius: 10px; background: transparent;
-          color: #cbd5e1; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+          color: #d3e0f2; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
         }
-        .ab-nav-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
-        .ab-nav-btn.is-active { background: #2563eb; color: #fff; box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35); }
-        .ab-logout { margin-top: auto; color: #fca5a5; }
+        .ab-nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .ab-nav-btn.is-active { background: #2469d8; color: #fff; box-shadow: 0 8px 20px rgba(24, 91, 196, 0.35); }
+        .ab-logout { margin-top: auto; color: #ffc0c0; }
         .ab-main { padding: 16px 18px 32px; overflow-x: hidden; }
-        .ab-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: #fff; border-radius: 16px; padding: 12px 16px; border: 1px solid #e2e8f0; }
+        .ab-topbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 14px; background: #fff; border-radius: 16px; padding: 12px 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15,23,42,0.04); }
         .ab-topbar h1 { margin: 0; font-size: 1.2rem; font-weight: 800; }
+        .ab-topbar-left p { margin: 3px 0 0; color: #748197; font-size: 11px; }
         .ab-topbar-right { display: flex; align-items: center; gap: 10px; }
+        .ab-global-search { display: flex; align-items: center; gap: 7px; width: min(220px, 24vw); padding: 0.5rem 0.7rem; border: 1px solid #e2e8f0; border-radius: 999px; background: #f8fafc; color: #8290a4; }
+        .ab-global-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #17243b; font: inherit; font-size: 12px; }
+        .ab-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        .ab-topbar-user { display: flex; align-items: center; gap: 7px; }
+        .ab-topbar-avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; background: #e7f0ff; color: #245eb4; font-size: 13px; font-weight: 800; }
+        .ab-topbar-user strong, .ab-topbar-user small { display: block; max-width: 125px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ab-topbar-user strong { color: #334155; font-size: 11px; }
+        .ab-topbar-user small { color: #8290a4; font-size: 10px; }
         .ab-time { font-size: 12px; color: #64748b; font-weight: 600; }
         .ab-icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-size: 16px; }
         .ab-banner { margin-bottom: 12px; padding: 10px 14px; border-radius: 10px; font-size: 14px; }
@@ -689,13 +707,14 @@ export default function TeacherResultsPage() {
         .ab-welcome {
           display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; align-items: center;
           padding: 18px 20px; border-radius: 18px; margin-bottom: 14px;
-          background: linear-gradient(120deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%);
-          color: #fff; box-shadow: 0 12px 30px rgba(37, 99, 235, 0.28);
+          background: linear-gradient(120deg, #123f7b 0%, #1e5eb4 58%, #2f7bce 100%);
+          color: #fff; box-shadow: 0 12px 30px rgba(22, 76, 148, 0.2);
+          border-left: 4px solid #e6c56a;
         }
         .ab-welcome h2 { margin: 0; font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
         .ab-welcome p { margin: 6px 0 0; opacity: 0.92; font-size: 14px; }
         .ab-welcome-chip {
-          display: flex; gap: 18px; background: rgba(255,255,255,0.15);
+          display: flex; gap: 18px; background: rgba(255,255,255,0.14);
           padding: 10px 16px; border-radius: 14px; backdrop-filter: blur(6px);
         }
         .ab-welcome-chip small { display: block; font-size: 11px; opacity: 0.85; }
@@ -708,10 +727,10 @@ export default function TeacherResultsPage() {
         .ab-kpi small { display: block; font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
         .ab-kpi strong { font-size: 1.35rem; font-weight: 800; }
         .ab-kpi-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; }
-        .ab-kpi-blue { background: #dbeafe; }
-        .ab-kpi-green { background: #d1fae5; }
-        .ab-kpi-amber { background: #fef3c7; }
-        .ab-kpi-purple { background: #ede9fe; }
+        .ab-kpi-blue { background: #e8f1ff; color: #2563eb; }
+        .ab-kpi-green { background: #e8f8ef; color: #159447; }
+        .ab-kpi-amber { background: #fff5d8; color: #a87900; }
+        .ab-kpi-purple { background: #f2eaff; color: #7c3aed; }
         .ab-grid { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 14px; }
         .ab-card {
           background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px;
@@ -729,8 +748,8 @@ export default function TeacherResultsPage() {
           padding: 8px 12px; border-radius: 10px; border: 1px solid #e2e8f0; background: #fff;
           font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
         }
-        .ab-btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
-        .ab-btn-primary:hover { background: #1d4ed8; }
+        .ab-btn-primary { background: #2469d8; color: #fff; border-color: #2469d8; }
+        .ab-btn-primary:hover { background: #1b55b2; }
         .ab-btn-light { background: #f8fafc; }
         .ab-btn:disabled, .ab-qa:disabled { opacity: 0.5; cursor: not-allowed; }
         .ab-status-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
@@ -752,7 +771,7 @@ export default function TeacherResultsPage() {
         .ab-progress-ring {
           --pct: 0;
           width: 140px; height: 140px; margin: 8px auto 12px; border-radius: 50%;
-          background: conic-gradient(#2563eb calc(var(--pct) * 1%), #e2e8f0 0);
+          background: conic-gradient(#2469d8 calc(var(--pct) * 1%), #e4ebf4 0);
           display: grid; place-items: center;
         }
         .ab-progress-inner {
@@ -765,25 +784,54 @@ export default function TeacherResultsPage() {
           width: 100%; margin-bottom: 8px; padding: 12px 14px; border: none; border-radius: 12px;
           font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; color: #fff;
         }
-        .ab-qa-green { background: linear-gradient(135deg, #16a34a, #22c55e); }
-        .ab-qa-purple { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
-        .ab-qa-blue { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+        .ab-qa-green, .ab-qa-purple, .ab-qa-blue { background: linear-gradient(135deg, #2469d8, #3988e5); color: #fff; }
         .ab-mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
         .ab-mod-card {
           text-align: left; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0;
           background: #fff; cursor: pointer; font: inherit;
         }
-        .ab-mod-card:hover, .ab-mod-card.is-selected { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        .ab-mod-card:hover, .ab-mod-card.is-selected { border-color: #2469d8; box-shadow: 0 0 0 3px rgba(36,105,216,0.16); }
         .ab-mod-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
         .ab-mod-card strong { display: block; margin-bottom: 4px; }
         .ab-mod-foot { margin-top: 8px; font-size: 12px; color: #64748b; }
         .ab-empty { padding: 28px 12px; text-align: center; color: #64748b; }
         @media (max-width: 1000px) {
           .ab { grid-template-columns: 1fr; }
-          .ab-side { flex-direction: row; flex-wrap: wrap; align-items: center; }
-          .ab-nav { flex-direction: row; flex-wrap: wrap; }
+          .ab-side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px; }
+          .ab-brand { flex: 1 1 220px; border-bottom: 0; padding-bottom: 4px; }
+          .ab-profile { padding: 6px 8px; }
+          .ab-profile .ab-avatar { width: 36px; height: 36px; }
+          .ab-nav { flex: 1 0 100%; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; }
+          .ab-nav-btn { width: auto; flex: 1 0 auto; justify-content: center; }
+          .ab-logout { margin-top: 0; }
           .ab-kpis { grid-template-columns: repeat(2, 1fr); }
           .ab-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+          .ab-side { padding: 10px; }
+          .ab-brand { flex-basis: 100%; }
+          .ab-profile { display: none; }
+          .ab-nav { gap: 4px; }
+          .ab-nav-btn { padding: 9px 10px; font-size: 12px; }
+          .ab-logout { flex: 0 0 auto; }
+          .ab-main { padding: 10px 10px 24px; }
+          .ab-topbar { align-items: flex-start; padding: 11px; }
+          .ab-topbar h1 { font-size: 1.05rem; }
+          .ab-topbar-right { flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+          .ab-global-search { width: 100%; }
+          .ab-topbar-user { display: none; }
+          .ab-time { display: none; }
+          .ab-welcome { padding: 15px; }
+          .ab-welcome h2 { font-size: 1.08rem; }
+          .ab-welcome-chip { gap: 12px; padding: 8px 10px; }
+          .ab-card { padding: 12px; }
+          .ab-card-actions { width: 100%; }
+          .ab-select { max-width: 100%; }
+          .ab-kpis { gap: 8px; }
+          .ab-kpi { gap: 8px; padding: 10px; }
+          .ab-kpi-icon { width: 36px; height: 36px; }
+          .ab-kpi small { font-size: 9px; }
+          .ab-kpi strong { font-size: 1.15rem; }
         }
       `}</style>
     </div>
