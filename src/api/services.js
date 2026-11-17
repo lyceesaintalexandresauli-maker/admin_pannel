@@ -126,23 +126,17 @@ export const uploadsAPI = {
   uploadImage: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/uploads/image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return api.post('/uploads', formData);
   },
   uploadVideo: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/uploads/video', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return api.post('/uploads', formData);
   },
   uploadDocument: (file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return api.post('/uploads/document', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    return api.post('/uploads', formData);
   },
 };
 

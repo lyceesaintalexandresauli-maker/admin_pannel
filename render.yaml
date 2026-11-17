@@ -14,9 +14,9 @@ services:
       - key: VITE_SUPABASE_ANON_KEY
         sync: false
       - key: VITE_API_BASE_URL
-        sync: false
+        value: https://muhura-backend.onrender.com
       - key: VITE_ASSETS_BASE_URL
-        sync: false
+        value: https://muhura-backend.onrender.com
       - key: VITE_FLASK_TIMETABLE_ADMIN_URL
         sync: false
       - key: VITE_FLASK_TIMETABLE_CLIENT_URL
