@@ -267,6 +267,12 @@ export function AuthProvider({ children }) {
 
       if (error) {
         const message = String(error.message || "");
+        if (/exceed_.*egress_quota|service for this project is restricted/i.test(message)) {
+          return {
+            ok: false,
+            error: "Supabase restricted this project after an egress quota was exceeded. Ask the project owner to restore service, then try signing in again.",
+          };
+        }
         if (/invalid login credentials/i.test(message)) {
           return { ok: false, error: "Invalid email or password." };
         }
