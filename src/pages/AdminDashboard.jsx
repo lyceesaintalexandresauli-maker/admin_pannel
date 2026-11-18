@@ -92,11 +92,15 @@ const RESOURCE_CONFIG = {
       { key: "title", label: "Title", type: "text", required: true },
       { key: "description", label: "Description", type: "textarea", required: true },
       { key: "category", label: "Category", type: "text" },
+      { key: "date", label: "Event date", type: "date" },
+      { key: "time", label: "Event time", type: "time" },
+      { key: "location", label: "Location", type: "text" },
+      { key: "registration_link", label: "Registration / information link", type: "url" },
       { key: "image_path", label: "Event image", type: "file", accept: "image/*" },
       { key: "video_url", label: "Event video", type: "file", accept: "video/*" },
       { key: "audio_url", label: "Event audio", type: "file", accept: "audio/*" },
     ],
-    columns: ["id", "title", "category", "created_at"],
+    columns: ["id", "title", "category", "date", "created_at"],
   },
   announcements: {
     title: "Announcements",
@@ -544,6 +548,7 @@ function ResourcePanel({
               ) : field.type === "file" ? (
                 <input
                   type="file"
+                  accept={field.accept}
                   style={{ width: '100%', padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.5rem' }}
                   onChange={(e) => {
                     const file = e.target.files[0];
